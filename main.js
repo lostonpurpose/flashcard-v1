@@ -10,7 +10,7 @@ const message = `${randomKey} â†’ ${kanjiData[randomKey]}`; // Example: "fire â†
 
 // LINE Notify personal access token
 const token = ""
-const myID = "vander4"
+const myID = ""
 
 const payload = {
   to: myID, // Step 2: Who should receive the message
