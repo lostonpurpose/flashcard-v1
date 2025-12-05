@@ -9,7 +9,7 @@ const randomKey = keys[Math.floor(Math.random() * keys.length)]; // Pick one key
 const message = `${randomKey} → ${kanjiData[randomKey]}`; // Example: "fire → 火"
 
 // LINE Notify personal access token
-const token = "OOcjAhZZ16+0XsLyflSni+GF4Wiq8SgzSRl26l72p/EUaGXQH+rPiJg3ZKGnOdr6z0XUwFXa35DaABWR2FiWOlbjwjS0/N0qBD6/NteiV68GaGLXffuv3AdjeGN2Wil8KHV4lUGQLpEaXziA2ZhUAwdB04t89/1O/w1cDnyilFU="; // Replace this with your own token
+const token = ""
 const myID = "vander4"
 
 const payload = {
