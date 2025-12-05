@@ -1,0 +1,1 @@
+import kanjiData from './kanji.json' assert { type: 'json' };
