@@ -10,15 +10,23 @@ const message = `${randomKey} â†’ ${kanjiData[randomKey]}`; // Example: "fire â†
 
 // LINE Notify personal access token
 const token = "OOcjAhZZ16+0XsLyflSni+GF4Wiq8SgzSRl26l72p/EUaGXQH+rPiJg3ZKGnOdr6z0XUwFXa35DaABWR2FiWOlbjwjS0/N0qBD6/NteiV68GaGLXffuv3AdjeGN2Wil8KHV4lUGQLpEaXziA2ZhUAwdB04t89/1O/w1cDnyilFU="; // Replace this with your own token
+const myID = "vander4"
+
+const payload = {
+  to: myID, // Step 2: Who should receive the message
+  messages: [
+    { type: 'text', text: message } // Step 3: The actual message content
+  ]
+};
 
 // Send the message via LINE Notify API
 await fetch("https://api.line.me/v2/bot/message/push", { // POST request to LINE Notify endpoint
   method: "POST", // HTTP method
   headers: { // Request headers
     "Authorization": `Bearer ${token}`, // Bearer token identifies your account
-    "Content-Type": "application/x-www-form-urlencoded", // LINE API expects form-encoded data
+    "Content-Type": "application/json", // LINE API expects form-encoded data
   },
-  body: new URLSearchParams({ message }), // Encode the message in URL-encoded format
+  body: JSON.stringify(payload) // Step 8: Convert the JS object to JSON string
 });
 
 console.log(message); // Log confirmation to console
