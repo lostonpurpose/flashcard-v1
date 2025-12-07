@@ -21,17 +21,19 @@ const payload = {
   ]
 };
 
-// Send the message via LINE Notify API
-await fetch("https://api.line.me/v2/bot/message/push", { // POST request to LINE Notify endpoint
-  method: "POST", // HTTP method
-  headers: { // Request headers
-    "Authorization": `Bearer ${token}`, // Bearer token identifies your account
-    "Content-Type": "application/json", // LINE API expects form-encoded data
-  },
-  body: JSON.stringify(payload) // Step 8: Convert the JS object to JSON string
+// // Send the message via LINE Notify API
+// await fetch("https://api.line.me/v2/bot/message/push", { // POST request to LINE Notify endpoint
+//   method: "POST", // HTTP method
+//   headers: { // Request headers
+//     "Authorization": `Bearer ${token}`, // Bearer token identifies your account
+//     "Content-Type": "application/json", // LINE API expects form-encoded data
+//   },
+//   body: JSON.stringify(payload) // Step 8: Convert the JS object to JSON string
 
-  // how does stringify parse out an object??
-  
-});
+//   // how does stringify parse out an object??
+
+// });
 
 console.log(message); // Log confirmation to console
+
+kanjiData.insert({"test": "yes?"})
