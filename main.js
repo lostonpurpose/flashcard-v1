@@ -8,6 +8,8 @@ const randomKey = keys[Math.floor(Math.random() * keys.length)]; // Pick one key
 // Construct the message to send
 const message = `${randomKey} → ${kanjiData[randomKey]}`; // Example: "fire → 火"
 
+// just random not good enough, need to track difficulty for repetition
+
 // LINE Notify personal access token
 const token = ""
 const myID = ""
@@ -27,6 +29,9 @@ await fetch("https://api.line.me/v2/bot/message/push", { // POST request to LINE
     "Content-Type": "application/json", // LINE API expects form-encoded data
   },
   body: JSON.stringify(payload) // Step 8: Convert the JS object to JSON string
+
+  // how does stringify parse out an object??
+  
 });
 
 console.log(message); // Log confirmation to console
