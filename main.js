@@ -1,51 +1,50 @@
 import { writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import kanjiData from './kanji.json' assert { type: 'json' }; // JSON import is ESM-only; kanjiData is now a JS object
+import kanjiData from './kanji.json' assert { type: 'json' };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// all above lets me write to kanji.json and add things from main.js, although i'll need a better way in the future
-
 // Pick a random key from the kanji JSON
-const keys = Object.keys(kanjiData); // Get an array of all keys: ["water", "fire", ...]
-const randomKey = keys[Math.floor(Math.random() * keys.length)]; // Pick one key at random
+const keys = Object.keys(kanjiData);
+const randomKey = keys[Math.floor(Math.random() * keys.length)];
 
 // Construct the message to send
-const message = `${randomKey} → ${kanjiData[randomKey]}`; // Example: "fire → 火"
+const message = `${randomKey} → ${kanjiData[randomKey]}`;
 
-// just random not good enough, need to track difficulty for repetition
+// Read from env vars
+const channelToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+const userId = process.env.LINE_USER_ID;
 
-// LINE Notify personal access token
-const token = ""
-const myID = ""
+if (!channelToken || !userId) {
+  throw new Error('Missing LINE_CHANNEL_ACCESS_TOKEN or LINE_USER_ID env vars');
+}
 
 const payload = {
-  to: myID, // Step 2: Who should receive the message
-  messages: [
-    { type: 'text', text: message } // Step 3: The actual message content
-  ]
+  to: userId,
+  messages: [{ type: 'text', text: message }]
 };
 
-// // Send the message via LINE Notify API
-// await fetch("https://api.line.me/v2/bot/message/push", { // POST request to LINE Notify endpoint
-//   method: "POST", // HTTP method
-//   headers: { // Request headers
-//     "Authorization": `Bearer ${token}`, // Bearer token identifies your account
-//     "Content-Type": "application/json", // LINE API expects form-encoded data
-//   },
-//   body: JSON.stringify(payload) // Step 8: Convert the JS object to JSON string
+// Send the message via LINE Messaging API
+const res = await fetch('https://api.line.me/v2/bot/message/push', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${channelToken}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(payload),
+});
 
-//   // how does stringify parse out an object??
+if (!res.ok) {
+  const errText = await res.text();
+  console.error('LINE push failed', res.status, errText);
+  process.exit(1);
+}
 
-// });
+console.log('Sent:', message);
 
-console.log(message); // Log confirmation to console
-
-// mutate
-kanjiData.test = "added";
-
-// persist
+// Optional: persist edits to kanji.json
+kanjiData.test = 'added';
 const jsonPath = join(__dirname, 'kanji.json');
 writeFileSync(jsonPath, JSON.stringify(kanjiData, null, 2), 'utf8');

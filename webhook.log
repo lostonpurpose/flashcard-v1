@@ -1,0 +1,19 @@
+Server listening on http://localhost:3000
+Got request: POST /webhook
+Received event JSON: {
+  destination: 'Ud4d4763c2a9be098dae2db6778949f71',
+  events: [
+    {
+      type: 'message',
+      message: [Object],
+      webhookEventId: '01KC8N3628MB26F8ZBXA54X23J',
+      deliveryContext: [Object],
+      timestamp: 1765522118257,
+      source: [Object],
+      replyToken: 'ed1f438d492f4951b8c6b2a8b24d18c2',
+      mode: 'active'
+    }
+  ]
+}
+UserId: U029c8490a8b0cd96cb5aa99465faaadc
+Got request: GET /
