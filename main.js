@@ -1,5 +1,12 @@
-// Import the kanji JSON as a JavaScript object
+import { writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import kanjiData from './kanji.json' assert { type: 'json' }; // JSON import is ESM-only; kanjiData is now a JS object
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// all above lets me write to kanji.json and add things from main.js, although i'll need a better way in the future
 
 // Pick a random key from the kanji JSON
 const keys = Object.keys(kanjiData); // Get an array of all keys: ["water", "fire", ...]
@@ -36,4 +43,9 @@ const payload = {
 
 console.log(message); // Log confirmation to console
 
-kanjiData.insert({"test": "yes?"})
+// mutate
+kanjiData.test = "added";
+
+// persist
+const jsonPath = join(__dirname, 'kanji.json');
+writeFileSync(jsonPath, JSON.stringify(kanjiData, null, 2), 'utf8');
