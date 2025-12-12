@@ -11,7 +11,12 @@ const keys = Object.keys(kanjiData);
 const randomKey = keys[Math.floor(Math.random() * keys.length)];
 
 // Construct the message to send
-const message = `${randomKey} → ${kanjiData[randomKey]}`;
+// message with meaning (key) and kanji (value)
+// const message = `${randomKey} → ${kanjiData[randomKey]}`;
+
+// message with kanji only
+const message = `${kanjiData[randomKey]} = ?`;
+
 
 // Read from env vars
 const channelToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
@@ -45,6 +50,6 @@ if (!res.ok) {
 console.log('Sent:', message);
 
 // Optional: persist edits to kanji.json
-kanjiData.test = 'added';
+// kanjiData.test = 'added';
 const jsonPath = join(__dirname, 'kanji.json');
 writeFileSync(jsonPath, JSON.stringify(kanjiData, null, 2), 'utf8');
