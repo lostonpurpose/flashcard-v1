@@ -1,8 +1,10 @@
-version: '3.8'
+# version: '3.8'
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: dockerfile
     ports:
       - "3000:3000"
     environment:
@@ -23,6 +25,7 @@ services:
       - POSTGRES_DB=flashcard
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - .:/app
     ports:
       - "5432:5432"
 

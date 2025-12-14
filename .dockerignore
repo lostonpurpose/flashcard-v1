@@ -1,0 +1,17 @@
+# Reduce Docker build context and keep secrets out of images
+node_modules/
+.git/
+.vscode/
+.DS_Store
+*.swp
+
+# Local env and data
+.env
+users.json
+webhook.log
+
+# Package manager logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

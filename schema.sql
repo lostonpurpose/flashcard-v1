@@ -1,0 +1,21 @@
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  line_user_id VARCHAR(255) UNIQUE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE cards (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id),
+    card_front VARCHAR(255) NOT NULL,
+    card_back VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE reviews (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id),
+    card_id INT NOT NULL REFERENCES cards(id),
+    correct_answer BOOLEAN NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    next_review TIMESTAMP NOT NULL
+);
