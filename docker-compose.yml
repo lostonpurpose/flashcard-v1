@@ -15,6 +15,13 @@ services:
     volumes:
       - .:/app
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    # Host networking lets cloudflared reach the app on localhost:3000
+    network_mode: "host"
+    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+    restart: unless-stopped
+
   db:
     image: postgres:16
     environment:

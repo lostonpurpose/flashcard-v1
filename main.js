@@ -54,3 +54,7 @@ console.log('Sent:', message);
 // kanjiData.test = 'added';
 const jsonPath = join(__dirname, 'kanji.json');
 writeFileSync(jsonPath, JSON.stringify(kanjiData, null, 2), 'utf8');
+
+// app currently broken thanks to chatgpt.
+// it thinks, but is likely wrong, that ngrok needs to be rerun and a new webhook set in line official
+// it now suggests another free, permanent service, cloudfare tunnel. why we had to bother with ngrok mystifies me.
