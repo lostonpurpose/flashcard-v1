@@ -39,9 +39,21 @@ if (!rows.length) {
   process.exit(0);
 }
 
+
 let successCount = 0;
 for (const row of rows) {
   const userId = row.line_user_id;
+  // Update last_kanji_sent to the English meaning (randomKey)
+  try {
+    await pool.query(
+      'UPDATE users SET last_kanji_sent = $1 WHERE line_user_id = $2',
+      [randomKey, userId]
+    );
+    console.log(`Updated last_kanji_sent for ${userId} to ${randomKey}`);
+  } catch (err) {
+    console.error(`Failed to update last_kanji_sent for ${userId}:`, err);
+    continue;
+  }
   const payload = {
     to: userId,
     messages: [{ type: 'text', text: message }]

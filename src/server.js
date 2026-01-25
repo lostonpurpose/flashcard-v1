@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import { Pool } from 'pg';
-import { checkMessage } from './kanji-check';
+import { checkMessage } from './kanji-check.js';
 
 const app = express();
 
@@ -72,9 +72,13 @@ app.post('/webhook', async (req, res) => {
     // show actual text of messages sent to line app (first one only) - for testing
     const userResponseObj = req.body.events[0];
     console.log("User message:", userResponseObj.message.text);
-    const userAnswer = userResponseObj.message.text;
-    await checkMessage(userAnswer, userId);
-
+    const userAnswer = userResponseObj.message.text.toLowerCase().trim();
+    const userId = userResponseObj.source.userId;
+    try {
+      await checkMessage(userAnswer, userId);
+    } catch (err) {
+      console.error("checkMessage failed:", err);
+    }
   }
 
   res.sendStatus(200);
