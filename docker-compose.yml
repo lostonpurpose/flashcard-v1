@@ -34,5 +34,8 @@ services:
     ports:
       - "5432:5432"
 
+  mainScript:
+    command: node main.js
+
 volumes:
   postgres_data:
