@@ -56,5 +56,16 @@ services:
     volumes:
       - .:/app
 
+  cron:
+    build: .
+    command: ["sh", "-c", "echo '30 * * * * node src/main.js' > /etc/crontabs/root && crond -f -L /dev/stdout"]
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/flashcard
+      - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+
 volumes:
   postgres_data:
