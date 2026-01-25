@@ -38,7 +38,7 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: sh -c "while true; do node src/main.js; sleep 60; done"
+    command: sh -c "while true; do node src/main.js; sleep 6000; done"
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/flashcard
       - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
