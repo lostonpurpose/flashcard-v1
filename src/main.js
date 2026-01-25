@@ -3,7 +3,7 @@ import 'dotenv/config';
 import { writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import kanjiData from './kanji.json' assert { type: 'json' };
+import kanjiData from '../kanji.json' assert { type: 'json' };
 import { Pool } from 'pg';
 
 const __filename = fileURLToPath(import.meta.url);

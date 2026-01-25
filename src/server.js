@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import { Pool } from 'pg';
+import { checkMessage } from './kanji-check';
 
 const app = express();
 
@@ -67,12 +68,23 @@ app.post('/webhook', async (req, res) => {
         }
       }
     }
+
+    // show actual text of messages sent to line app (first one only) - for testing
+    const userResponseObj = req.body.events[0];
+    console.log("User message:", userResponseObj.message.text);
+    const userAnswer = userResponseObj.message.text;
+    await checkMessage(userAnswer, userId);
+
   }
 
   res.sendStatus(200);
 });
 
 app.listen(3000, () => console.log("Server listening on http://localhost:3000"));
+
+
+
+
 
 // here i need to take event.source.userId and add it to the db if it doesn't exist
 // 1. check if user id exists
