@@ -1,8 +1,10 @@
+
 import 'dotenv/config';
 import { writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import kanjiData from './kanji.json' assert { type: 'json' };
+import { Pool } from 'pg';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,36 +21,51 @@ const randomKey = keys[Math.floor(Math.random() * keys.length)];
 const message = `${kanjiData[randomKey]} = ?`;
 
 
+
 // Read from env vars
 const channelToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-const userId = process.env.LINE_USER_ID;
-
-if (!channelToken || !userId) {
-  throw new Error('Missing LINE_CHANNEL_ACCESS_TOKEN or LINE_USER_ID env vars');
+if (!channelToken) {
+  throw new Error('Missing LINE_CHANNEL_ACCESS_TOKEN env var');
 }
 
-const payload = {
-  to: userId,
-  messages: [{ type: 'text', text: message }]
-};
-
-// Send the message via LINE Messaging API
-const res = await fetch('https://api.line.me/v2/bot/message/push', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${channelToken}`,
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(payload),
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
 });
 
-if (!res.ok) {
-  const errText = await res.text();
-  console.error('LINE push failed', res.status, errText);
-  process.exit(1);
+// Fetch all user IDs from the database
+const { rows } = await pool.query('SELECT line_user_id FROM users');
+if (!rows.length) {
+  console.log('No users found in the database.');
+  process.exit(0);
 }
 
-console.log('Sent:', message);
+let successCount = 0;
+for (const row of rows) {
+  const userId = row.line_user_id;
+  const payload = {
+    to: userId,
+    messages: [{ type: 'text', text: message }]
+  };
+
+  const res = await fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${channelToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error(`LINE push failed for user ${userId}`, res.status, errText);
+  } else {
+    console.log(`Sent to ${userId}:`, message);
+    successCount++;
+  }
+}
+
+console.log(`Done. Sent to ${successCount} user(s).`);
 
 // Optional: persist edits to kanji.json
 // kanjiData.test = 'added';
