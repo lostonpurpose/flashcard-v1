@@ -9,28 +9,30 @@ export async function reviewCard(userId, cardId, correct) {
     [cardId, userId]
   );
   if (!rows.length) throw new Error('Card not found');
-  let frequency = rows[0].frequency;
+  let frequency = Number(rows[0].frequency);
 
   // Adjust frequency
   if (correct) {
     frequency = Math.min(frequency * 2, 1440); // max 1 day
+    const freqStr = String(frequency);
     await pool.query(
       `UPDATE cards SET
         correct_count = correct_count + 1,
         frequency = $1,
-        next_review = NOW() + ($1 || ' minutes')::interval
-       WHERE id = $2 AND user_id = $3`,
-      [frequency, cardId, userId]
+        next_review = NOW() + (($2 || ' minutes')::interval)
+       WHERE id = $3 AND user_id = $4`,
+      [frequency, freqStr, cardId, userId]
     );
   } else {
     frequency = Math.max(Math.floor(frequency / 2), 1); // min 1 min
+    const freqStr = String(frequency);
     await pool.query(
       `UPDATE cards SET
         incorrect_count = incorrect_count + 1,
         frequency = $1,
-        next_review = NOW() + ($1 || ' minutes')::interval
-       WHERE id = $2 AND user_id = $3`,
-      [frequency, cardId, userId]
+        next_review = NOW() + (($2 || ' minutes')::interval)
+       WHERE id = $3 AND user_id = $4`,
+      [frequency, freqStr, cardId, userId]
     );
   }
 }

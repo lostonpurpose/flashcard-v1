@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 
+// Return true if correct, false if not. Do not send messages here.
 export async function checkMessage(userAnswer, userId) {
     console.log('[checkMessage] Called with:', { userAnswer, userId });
 
@@ -10,8 +11,9 @@ export async function checkMessage(userAnswer, userId) {
     // Get the most recent kanji sent to the user (the kanji character)
     let lastKanji;
     try {
+        // FIX: use id = $1, not line_user_id = $1
         const result = await pool.query(
-            'SELECT last_kanji_sent FROM users WHERE line_user_id = $1',
+            'SELECT last_kanji_sent FROM users WHERE id = $1',
             [userId]
         );
         lastKanji = result.rows[0]?.last_kanji_sent;
@@ -44,49 +46,5 @@ export async function checkMessage(userAnswer, userId) {
     }
 
     // Compare user answer to correct answer
-    if (userAnswer === correctAnswer) {
-        // send 'correct' message
-        const payload = {
-            to: userId,
-            messages: [{ type: 'text', text: 'You are correct sir' }]
-        };
-        console.log('[checkMessage] Sending CORRECT payload:', payload);
-        try {
-            const res = await fetch('https://api.line.me/v2/bot/message/push', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
-            const text = await res.text();
-            console.log('[checkMessage] LINE API response (correct):', res.status, text);
-        } catch (err) {
-            console.error('[checkMessage] Fetch error (correct):', err);
-        }
-    } else {
-        // send incorrect message with the correct answer
-        const payload = {
-            to: userId,
-            messages: [{ type: 'text', text: `That is not the definition. ${lastKanji} means ${correctAnswer}` }]
-        };
-        console.log('[checkMessage] Sending INCORRECT payload:', payload);
-        try {
-            const res = await fetch('https://api.line.me/v2/bot/message/push', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
-            const text = await res.text();
-            console.log('[checkMessage] LINE API response (incorrect):', res.status, text);
-        } catch (err) {
-            console.error('[checkMessage] Fetch error (incorrect):', err);
-        }
-    }
-
-    await pool.end();
+    return userAnswer === correctAnswer;
 }

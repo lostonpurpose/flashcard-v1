@@ -70,15 +70,19 @@ app.post('/webhook', async (req, res) => {
 
         // 3. Check answer and update review stats
         if (cardId) {
-          // You need to determine if the answer is correct (implement your own logic or use checkMessage)
-          // For now, let's assume checkMessage returns true/false for correct/incorrect
           let correct = false;
           try {
-            correct = await checkMessage(userAnswer, lineUserId); // You may need to adapt checkMessage to return a boolean
+            correct = await checkMessage(userAnswer, userId);
           } catch (err) {
             console.error("checkMessage failed:", err);
           }
-          await reviewCard(userId, cardId, correct);
+          if (cardId) {
+            await reviewCard(userId, cardId, correct);
+          } else {
+            console.error("No valid cardId found, skipping reviewCard");
+          }
+        } else {
+          console.error("No cardId found for user, skipping reviewCard");
         }
 
         // 4. Try to introduce the next batch if ready
