@@ -31,14 +31,14 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - .:/app
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   cron:
     build: .
     working_dir: /app
     volumes:
       - .:/app
-    command: sh -c "while true; do node src/main.js; sleep 6000; done"
+    command: sh -c "while true; do node src/main.js; sleep 1000; done"
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/flashcard
       - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
