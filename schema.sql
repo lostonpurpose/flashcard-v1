@@ -19,3 +19,11 @@ CREATE TABLE reviews (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     next_review TIMESTAMP NOT NULL
 );
+
+CREATE TABLE master_cards (
+    id SERIAL PRIMARY KEY,
+    card_front VARCHAR(255) NOT NULL,
+    card_back VARCHAR(255) NOT NULL,
+    difficulty VARCHAR(255) NOT NULL,
+    UNIQUE (card_front, card_back, difficulty)
+);

@@ -1,4 +1,4 @@
-import { Pool } from "pg"
+import { Pool } from "pg" // easy way to keep db connection open as needed
 
 
 export async function checkMessage(userAnswer, userId) {
@@ -9,7 +9,7 @@ export async function checkMessage(userAnswer, userId) {
     });
 
     // find most recent kanji sent to user
-    let lastKanji;
+    let lastKanji; // this is the english definition
     try {
         const result = await pool.query(
             'SELECT last_kanji_sent FROM users WHERE line_user_id = $1',
@@ -49,7 +49,7 @@ export async function checkMessage(userAnswer, userId) {
         // send incorrect message
         const payload = {
             to: userId,
-            messages: [{ type: 'text', text: 'That is not the definition' }]
+            messages: [{ type: 'text', text: `That is not the definition. ${lastKanji.value} means ${lastKanji}` }]
         };
         console.log('[checkMessage] Sending INCORRECT payload:', payload);
         try {
