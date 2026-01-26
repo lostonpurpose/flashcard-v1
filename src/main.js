@@ -1,28 +1,6 @@
-
 import 'dotenv/config';
-import { writeFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import kanjiData from '../kanji-easy.json' assert { type: 'json' };
 import { Pool } from 'pg';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Pick a random key from the kanji JSON
-const keys = Object.keys(kanjiData);
-const randomKey = keys[Math.floor(Math.random() * keys.length)];
-
-// Construct the message to send
-// message with meaning (key) and kanji (value)
-// const message = `${randomKey} → ${kanjiData[randomKey]}`;
-
-// message with kanji only
-const message = `${kanjiData[randomKey]} = ?`;
-
-
-
-// Read from env vars
 const channelToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 if (!channelToken) {
   throw new Error('Missing LINE_CHANNEL_ACCESS_TOKEN env var');
@@ -32,6 +10,21 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+// Fetch a random card from the database (e.g., easy deck)
+const { rows: cardRows } = await pool.query(
+  "SELECT card_front, card_back FROM master_cards WHERE difficulty = $1 ORDER BY RANDOM() LIMIT 1",
+  ['easy']
+);
+
+if (!cardRows.length) {
+  console.log('No cards found in the database.');
+  process.exit(0);
+}
+
+const randomCard = cardRows[0];
+// message with kanji only (card_front is kanji, card_back is English)
+const message = `${randomCard.card_front} = ?`;
+
 // Fetch all user IDs from the database
 const { rows } = await pool.query('SELECT line_user_id FROM users');
 if (!rows.length) {
@@ -39,17 +32,16 @@ if (!rows.length) {
   process.exit(0);
 }
 
-
 let successCount = 0;
 for (const row of rows) {
   const userId = row.line_user_id;
-  // Update last_kanji_sent to the English meaning (randomKey)
+  // Update last_kanji_sent to the card_front (kanji)
   try {
     await pool.query(
       'UPDATE users SET last_kanji_sent = $1 WHERE line_user_id = $2',
-      [randomKey, userId]
+      [randomCard.card_front, userId]
     );
-    console.log(`Updated last_kanji_sent for ${userId} to ${randomKey}`);
+    console.log(`Updated last_kanji_sent for ${userId} to ${randomCard.card_front}`);
   } catch (err) {
     console.error(`Failed to update last_kanji_sent for ${userId}:`, err);
     continue;
@@ -79,11 +71,4 @@ for (const row of rows) {
 
 console.log(`Done. Sent to ${successCount} user(s).`);
 
-// Optional: persist edits to kanji.json
-// kanjiData.test = 'added';
-const jsonPath = join(__dirname, 'kanji.json');
-writeFileSync(jsonPath, JSON.stringify(kanjiData, null, 2), 'utf8');
-
-// app currently broken thanks to chatgpt.
-// it thinks, but is likely wrong, that ngrok needs to be rerun and a new webhook set in line official
-// it now suggests another free, permanent service, cloudfare tunnel. why we had to bother with ngrok mystifies me.
+await pool.end();
