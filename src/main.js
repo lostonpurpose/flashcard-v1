@@ -10,42 +10,82 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Fetch a random card from the database (e.g., easy deck)
-const { rows: cardRows } = await pool.query(
-  "SELECT card_front, card_back FROM master_cards WHERE difficulty = $1 ORDER BY RANDOM() LIMIT 1",
-  ['easy']
-);
-
-if (!cardRows.length) {
-  console.log('No cards found in the database.');
-  process.exit(0);
-}
-
-const randomCard = cardRows[0];
-// message with kanji only (card_front is kanji, card_back is English)
-const message = `${randomCard.card_front} = ?`;
-
-// Fetch all user IDs from the database
-const { rows } = await pool.query('SELECT line_user_id FROM users');
-if (!rows.length) {
+// Fetch all user IDs and DB IDs from the database
+const { rows: users } = await pool.query('SELECT id, line_user_id FROM users');
+if (!users.length) {
   console.log('No users found in the database.');
   process.exit(0);
 }
 
 let successCount = 0;
-for (const row of rows) {
-  const userId = row.line_user_id;
-  // Update last_kanji_sent to the card_front (kanji)
+for (const user of users) {
+  const userId = user.line_user_id;
+  const dbUserId = user.id;
+
+  // 1. Check if user has any introduced cards
+  const { rows: introducedCards } = await pool.query(
+    `SELECT * FROM cards
+     WHERE user_id = $1 AND introduced = TRUE
+     ORDER BY next_review ASC NULLS FIRST, id ASC`,
+    [dbUserId]
+  );
+
+  if (!introducedCards.length) {
+    // Introduce first 5 cards from master_cards
+    const { rows: firstFive } = await pool.query(
+      `SELECT card_front, card_back FROM master_cards
+       WHERE difficulty = $1
+       ORDER BY id ASC LIMIT 5`,
+      ['easy']
+    );
+    for (const card of firstFive) {
+      await pool.query(
+        `INSERT INTO cards (user_id, card_front, card_back, introduced, next_review)
+         VALUES ($1, $2, $3, TRUE, NOW()) ON CONFLICT DO NOTHING`,
+        [dbUserId, card.card_front, card.card_back]
+      );
+      // Send study message (kanji + meaning)
+      const studyPayload = {
+        to: userId,
+        messages: [{ type: 'text', text: `Study: ${card.card_front} = ${card.card_back}` }]
+      };
+      await fetch('https://api.line.me/v2/bot/message/push', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${channelToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(studyPayload),
+      });
+    }
+    console.log(`Introduced first 5 cards to ${userId}`);
+    continue; // Don't send a quiz message this cycle
+  }
+
+  // 2. Find the next due card (introduced, due for review)
+  const dueCard = introducedCards.find(
+    c => !c.next_review || new Date(c.next_review) <= new Date()
+  );
+  if (!dueCard) {
+    console.log(`No due cards for ${userId}`);
+    continue;
+  }
+
+  // 3. Send quiz message (kanji only)
+  const message = `${dueCard.card_front} = ?`;
+
+  // Update last_kanji_sent to the kanji
   try {
     await pool.query(
-      'UPDATE users SET last_kanji_sent = $1 WHERE line_user_id = $2',
-      [randomCard.card_front, userId]
+      'UPDATE users SET last_kanji_sent = $1 WHERE id = $2',
+      [dueCard.card_front, dbUserId]
     );
-    console.log(`Updated last_kanji_sent for ${userId} to ${randomCard.card_front}`);
+    console.log(`Updated last_kanji_sent for ${userId} to ${dueCard.card_front}`);
   } catch (err) {
     console.error(`Failed to update last_kanji_sent for ${userId}:`, err);
     continue;
   }
+
   const payload = {
     to: userId,
     messages: [{ type: 'text', text: message }]
