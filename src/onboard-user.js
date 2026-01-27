@@ -1,6 +1,8 @@
 import { Pool } from 'pg';
+import fetch from 'node-fetch'; // Import at the top
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const channelToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
 export async function onboardUser(lineUserId, difficulty = 'easy') {
   // Get user id
@@ -28,7 +30,19 @@ export async function onboardUser(lineUserId, difficulty = 'easy') {
 
   // Send study message (kanji + meaning) for each card
   for (const card of cardRows) {
-    // Replace this with your actual message sending logic
-    console.log(`Study: ${card.card_front} = ${card.card_back}`);
+    const payload = {
+      to: lineUserId,
+      messages: [
+        { type: 'text', text: `Study: ${card.card_front} = ${card.card_back}` }
+      ]
+    };
+    await fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${channelToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
   }
 }
