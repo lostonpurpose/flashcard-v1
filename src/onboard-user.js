@@ -28,8 +28,26 @@ export async function onboardUser(lineUserId, difficulty = 'easy') {
     );
   }
 
+  // Send the very first welcome greeting
+  const initialGreeting = {
+    to: lineUserId,
+    messages: [
+      { type: 'text', text: "Welcome to the Kanji Study Group! You'll be getting a kanji every few hours, just repond to the message with your answer like a regular text message. For options, like changing the timing or difficulty, see the 'Files' section which can be found by clicking the the lines in the top right. Here are your first five kanji to learn:\n" }
+    ]
+  };
+    await fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${channelToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(initialGreeting),
+  });
+
+
   // Send study message (kanji + meaning) for each card
   for (const card of cardRows) {
+
     const payload = {
       to: lineUserId,
       messages: [
