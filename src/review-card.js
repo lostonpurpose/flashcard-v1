@@ -24,7 +24,11 @@ export async function reviewCard(userId, cardId, correct) {
       [frequency, freqStr, cardId, userId]
     );
   } else {
-    frequency = Math.max(Math.floor(frequency / 2), 1); // min 1 min
+    const MIN_FREQUENCY = 2; // Set your minimum here
+    if (Math.floor(frequency / 2) >= MIN_FREQUENCY) {
+      frequency = Math.floor(frequency / 2);
+    }
+    // else, frequency stays the same
     const freqStr = String(frequency);
     await pool.query(
       `UPDATE cards SET
