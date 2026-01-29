@@ -22,54 +22,26 @@ for (const user of users) {
   const userId = user.line_user_id;
   const dbUserId = user.id;
 
-  // 1. Check if user has any introduced cards
-  const { rows: introducedCards } = await pool.query(
+  // 1. Get all due cards for the user
+  const { rows: dueCards } = await pool.query(
     `SELECT * FROM cards
-     WHERE user_id = $1 AND introduced = TRUE
-     ORDER BY next_review ASC NULLS FIRST, id ASC`,
+     WHERE user_id = $1 AND introduced = TRUE AND (next_review IS NULL OR next_review <= NOW())`,
     [dbUserId]
   );
 
-  if (!introducedCards.length) {
-    // Introduce first 5 cards from master_cards
-    const { rows: firstFive } = await pool.query(
-      `SELECT card_front, card_back FROM master_cards
-       WHERE difficulty = $1
-       ORDER BY id ASC LIMIT 5`,
-      ['easy']
-    );
-    for (const card of firstFive) {
-      await pool.query(
-        `INSERT INTO cards (user_id, card_front, card_back, introduced, next_review)
-         VALUES ($1, $2, $3, TRUE, NOW()) ON CONFLICT DO NOTHING`,
-        [dbUserId, card.card_front, card.card_back]
-      );
-      // Send study message (kanji + meaning)
-      const studyPayload = {
-        to: userId,
-        messages: [{ type: 'text', text: `Study: ${card.card_front} = ${card.card_back}` }]
-      };
-      await fetch('https://api.line.me/v2/bot/message/push', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${channelToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(studyPayload),
-      });
-    }
-    console.log(`Introduced first 5 cards to ${userId}`);
-    continue; // Don't send a quiz message this cycle
-  }
-
-  // 2. Find the next due card (introduced, due for review)
-  const dueCard = introducedCards.find(
-    c => !c.next_review || new Date(c.next_review) <= new Date()
-  );
-  if (!dueCard) {
+  if (!dueCards.length) {
     console.log(`No due cards for ${userId}`);
     continue;
   }
+
+  // 2. Find the minimum frequency among due cards
+  const minFreq = Math.min(...dueCards.map(card => card.frequency));
+
+  // 3. Filter cards with that minimum frequency
+  const minFreqCards = dueCards.filter(card => card.frequency === minFreq);
+
+  // 4. Pick one at random
+  const dueCard = minFreqCards[Math.floor(Math.random() * minFreqCards.length)];
 
   // 3. Send quiz message (kanji only)
   const message = `${dueCard.card_front} = ?`;
