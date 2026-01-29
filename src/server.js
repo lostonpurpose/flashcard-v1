@@ -38,7 +38,7 @@ app.post('/webhook', async (req, res) => {
           if (result.rowCount === 1) {
             console.log("Inserted new user", lineUserId);
             await onboardUser(lineUserId, 'easy'); // Onboard with first 5 cards
-            // Optionally send a welcome message here
+            // Optionally send a welcome message here -- message is in onboard file
           } else {
             console.log("User already exists", lineUserId);
           }
@@ -76,13 +76,50 @@ app.post('/webhook', async (req, res) => {
           } catch (err) {
             console.error("checkMessage failed:", err);
           }
-          if (cardId) {
-            await reviewCard(userId, cardId, correct);
-          } else {
-            console.error("No valid cardId found, skipping reviewCard");
+
+          // Fetch last kanji sent
+          const lastKanjiRes = await pool.query(
+            'SELECT last_kanji_sent FROM users WHERE id = $1',
+            [userId]
+          );
+          const lastKanji = lastKanjiRes.rows[0]?.last_kanji_sent;
+
+          // Fetch correct meaning
+          let correctMeaning = '';
+          if (lastKanji) {
+            const meaningRes = await pool.query(
+              'SELECT card_back FROM master_cards WHERE card_front = $1 LIMIT 1',
+              [lastKanji]
+            );
+            correctMeaning = meaningRes.rows[0]?.card_back;
           }
+
+          // Build and send feedback message if right/wrong
+          let feedbackText;
+          if (correct) {
+            feedbackText = `Correct! ${lastKanji} means ${correctMeaning}`;
+          } else {
+            feedbackText = `Incorrect. ${lastKanji} means ${correctMeaning}`;
+          }
+
+          const payload = {
+            to: lineUserId,
+            messages: [{ type: 'text', text: feedbackText }]
+          };
+          await fetch('https://api.line.me/v2/bot/message/push', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${channelToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          // Now update review stats
+          await reviewCard(userId, cardId, correct);
+
         } else {
-          console.error("No cardId found for user, skipping reviewCard");
+          console.error("No valid cardId found, skipping reviewCard");
         }
 
         // 4. Try to introduce the next batch if ready

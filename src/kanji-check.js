@@ -37,7 +37,6 @@ export async function checkMessage(userAnswer, userId) {
         correctAnswer = result.rows[0]?.card_back?.toLowerCase().trim();
         if (!correctAnswer) {
             console.error('[checkMessage] No correct answer found for kanji:', lastKanji);
-            return;
         }
         console.log('[checkMessage] correctAnswer from DB:', correctAnswer);
     } catch (err) {
