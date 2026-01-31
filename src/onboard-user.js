@@ -32,7 +32,7 @@ export async function onboardUser(lineUserId, difficulty = 'easy') {
   const initialGreeting = {
     to: lineUserId,
     messages: [
-      { type: 'text', text: "Welcome to the Kanji Study Group! You'll be getting a kanji every few hours, just repond to the message with your answer like a regular text message. For options, like changing the timing or difficulty, see the 'Files' section which can be found by clicking the the lines in the top right. Here are your first five kanji to learn:\n" }
+      { type: 'text', text: "Welcome to the Kanji Study Line App!\n You'll be getting a kanji every few hours. Just repond to the message with your answer like a regular text message.\n For options, like changing the timing or difficulty, see the 'Files' section. It can be found by clicking the three lines in the top right.\n Here are your first five kanji to learn:\n" }
     ]
   };
     await fetch('https://api.line.me/v2/bot/message/push', {
@@ -51,7 +51,7 @@ export async function onboardUser(lineUserId, difficulty = 'easy') {
     const payload = {
       to: lineUserId,
       messages: [
-        { type: 'text', text: `Study: ${card.card_front} = ${card.card_back}` }
+        { type: 'text', text: `${card.card_front} = ${card.card_back}` }
       ]
     };
     await fetch('https://api.line.me/v2/bot/message/push', {

@@ -8,6 +8,9 @@ import { introduceNextBatch } from './introduce-next-batch.js';
 
 const app = express();
 
+// line token to allow messaging
+const channelToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
