@@ -73,6 +73,23 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
         body: JSON.stringify(payload),
       });
     }
+
+// Send empty block so you don't accidentally see the teachings
+  const emptyBlock = {
+    to: lineUserId,
+    messages: [
+      { type: 'text', text: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nScroll up for the new words (this is so you don't accidentally see the meanings :))" }
+    ]
+  };
+    await fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${channelToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(emptyBlock),
+  });
+
     return true; // Next batch introduced
   }
   return false; // Not ready for next batch

@@ -55,11 +55,65 @@ app.post('/webhook', async (req, res) => {
 
         // 2. Handle user message
         const userResponseObj = event;
-        const userAnswer = userResponseObj.message?.text?.toLowerCase().trim();
+        const userAnswer = userResponseObj.message?.text?.trim();
         if (!userAnswer) continue;
 
-        // Here you would look up the last card sent to the user, get its card id, and check the answer.
-        // For demonstration, let's assume you have last_kanji_sent and can get the card id:
+        // Check if user is creating a custom card or changing difficulty (format: "x = y")
+        if (userAnswer.includes(' = ')) {
+          const parts = userAnswer.split(' = ').map(s => s.trim());
+          
+          // Check if it's a difficulty change command
+          if (parts[0].toLowerCase() === 'difficulty' && parts[1]) {
+            const newDifficulty = parts[1].toLowerCase();
+            if (['easy', 'medium', 'hard'].includes(newDifficulty)) {
+              try {
+                await pool.query('UPDATE users SET difficulty = $1 WHERE id = $2', [newDifficulty, userId]);
+                await pool.query('DELETE FROM cards WHERE user_id = $1', [userId]);
+                await onboardUser(lineUserId, newDifficulty);
+                
+                const payload = {
+                  to: lineUserId,
+                  messages: [{ type: 'text', text: `Difficulty changed to ${newDifficulty}. Your progress has been reset.` }]
+                };
+                await fetch('https://api.line.me/v2/bot/message/push', {
+                  method: 'POST',
+                  headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload),
+                });
+                continue;
+              } catch (err) {
+                console.error("Failed to change difficulty", err);
+              }
+            }
+          } else {
+            // Custom card creation
+            const [cardFront, cardBack] = parts;
+            if (cardFront && cardBack) {
+              try {
+                await pool.query(
+                  `INSERT INTO cards (user_id, card_front, card_back, introduced, next_review) VALUES ($1, $2, $3, TRUE, NOW())`,
+                  [userId, cardFront, cardBack]
+                );
+                
+                const payload = {
+                  to: lineUserId,
+                  messages: [{ type: 'text', text: `Card created: ${cardFront} = ${cardBack}` }]
+                };
+                await fetch('https://api.line.me/v2/bot/message/push', {
+                  method: 'POST',
+                  headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload),
+                });
+                continue;
+              } catch (err) {
+                console.error("Failed to create custom card", err);
+              }
+            }
+          }
+        }
+
+        const userAnswerLower = userAnswer.toLowerCase();
+
         let cardId;
         try {
           const cardRes = await pool.query(
@@ -75,7 +129,7 @@ app.post('/webhook', async (req, res) => {
         if (cardId) {
           let correct = false;
           try {
-            correct = await checkMessage(userAnswer, userId);
+            correct = await checkMessage(userAnswerLower, userId);
           } catch (err) {
             console.error("checkMessage failed:", err);
           }

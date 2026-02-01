@@ -68,7 +68,7 @@ export async function onboardUser(lineUserId, difficulty = 'easy') {
   const emptyBlock = {
     to: lineUserId,
     messages: [
-      { type: 'text', text: "/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n(this is so you don't accidentally see the meanings :))" }
+      { type: 'text', text: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nScroll up for your first five cards (this is so you don't accidentally see the meanings when typing your answers:))" }
     ]
   };
     await fetch('https://api.line.me/v2/bot/message/push', {
