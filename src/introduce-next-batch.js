@@ -42,8 +42,24 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
          VALUES ($1, $2, $3, TRUE, NOW())`,
         [userId, card.card_front, card.card_back]
       );
+
+     // Send message telling them about next 5 kanji
+      const nextBatchUnlocked = {
+        to: lineUserId,
+        messages: [
+          { type: 'text', text: "Nice work! You're on to the next 5 cards. Here they are:" }
+        ]
+      };
+        await fetch('https://api.line.me/v2/bot/message/push', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${channelToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(nextBatchUnlocked),
+      });
       
-      // Send study message via LINE
+      // Send next five flashcards to learn via LINE
       const payload = {
         to: lineUserId,
         messages: [{ type: 'text', text: `${card.card_front} = ${card.card_back}` }]
