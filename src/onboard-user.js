@@ -32,7 +32,7 @@ export async function onboardUser(lineUserId, difficulty = 'easy') {
   const initialGreeting = {
     to: lineUserId,
     messages: [
-      { type: 'text', text: "Welcome to the Kanji Study Line App!\n You'll be getting a kanji every few hours. Just repond to the message with your answer like a regular text message.\n For options, like changing the timing or difficulty, see the 'Files' section. It can be found by clicking the three lines in the top right.\n Here are your first five kanji to learn:\n" }
+      { type: 'text', text: "Welcome to the Kanji Study Line App!\nYou'll be getting a kanji every few hours. Just repond to the message with your answer like a regular text message\n For options, like changing the timing or difficulty, see the 'Files' section. It can be found by clicking the three lines in the top right.\n Here are your first five kanji to learn:" }
     ]
   };
     await fetch('https://api.line.me/v2/bot/message/push', {
@@ -63,4 +63,20 @@ export async function onboardUser(lineUserId, difficulty = 'easy') {
       body: JSON.stringify(payload),
     });
   }
+
+  // Send empty block so you don't accidentally see the teachings
+  const emptyBlock = {
+    to: lineUserId,
+    messages: [
+      { type: 'text', text: "/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n/\n(this is so you don't accidentally see the meanings :))" }
+    ]
+  };
+    await fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${channelToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(emptyBlock),
+  });
 }
