@@ -152,6 +152,11 @@ app.post('/webhook', async (req, res) => {
           }
         }
 
+        // Skip webhook processing for 'help' - let LINE Manager auto-reply handle it
+        if (userAnswer.toLowerCase() === 'help') {
+          continue;
+        }
+
         const userAnswerLower = userAnswer.toLowerCase();
 
         let cardId;
