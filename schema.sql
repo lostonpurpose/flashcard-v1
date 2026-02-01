@@ -2,7 +2,8 @@ CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   line_user_id VARCHAR(255) UNIQUE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  last_kanji_sent VARCHAR(255)
+  last_kanji_sent VARCHAR(255),
+  difficulty VARCHAR(50) DEFAULT 'easy'
 );
 
 CREATE TABLE cards (

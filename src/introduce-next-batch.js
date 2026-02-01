@@ -1,36 +1,63 @@
 import { Pool } from 'pg';
+import fetch from 'node-fetch';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const channelToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
-export async function introduceNextBatch(userId, difficulty = 'easy', batchSize = 5) {
-  // Check if all introduced cards have correct_count >= 1
-  const { rows: notReady } = await pool.query(
-    `SELECT 1 FROM cards WHERE user_id = $1 AND introduced = TRUE AND correct_count < 1 LIMIT 1`,
+export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy') {
+  // 1. Get all cards for user, ordered by id
+  const { rows: userCards } = await pool.query(
+    'SELECT * FROM cards WHERE user_id = $1 ORDER BY id ASC',
     [userId]
   );
-  if (notReady.length) return false; // Not ready for next batch
 
-  // Get next batch from master_cards not yet in cards
-  const { rows: nextCards } = await pool.query(
-    `SELECT mc.card_front, mc.card_back FROM master_cards mc
-     WHERE mc.difficulty = $1
-     AND NOT EXISTS (
-       SELECT 1 FROM cards c WHERE c.user_id = $2 AND c.card_front = mc.card_front
-     )
-     ORDER BY mc.id ASC
-     LIMIT $3`,
-    [difficulty, userId, batchSize]
-  );
-
-  // Insert and introduce
-  for (const card of nextCards) {
-    await pool.query(
-      `INSERT INTO cards (user_id, card_front, card_back, introduced, next_review)
-       VALUES ($1, $2, $3, TRUE, NOW()) ON CONFLICT DO NOTHING`,
-      [userId, card.card_front, card.card_back]
-    );
-    // Send study message (kanji + meaning)
-    console.log(`Study: ${card.card_front} = ${card.card_back}`);
+  // 2. Split into batches of 5
+  const batches = [];
+  for (let i = 0; i < userCards.length; i += 5) {
+    batches.push(userCards.slice(i, i + 5));
   }
-  return true;
+
+  // 3. Find the latest batch (the last group of 5)
+  const currentBatch = batches[batches.length - 1];
+
+  // 4. Check if current batch is mastered
+  const mastered = currentBatch.length === 5 && currentBatch.every(card => card.correct_count >= 1);
+
+  if (mastered) {
+    // 5. Get next 5 master_cards not yet assigned to user, filtered by difficulty
+    const { rows: nextCards } = await pool.query(
+      `SELECT card_front, card_back FROM master_cards
+       WHERE difficulty = $2
+       AND card_front NOT IN (
+         SELECT card_front FROM cards WHERE user_id = $1
+       )
+       ORDER BY id ASC LIMIT 5`,
+      [userId, difficulty]
+    );
+
+    // 6. Insert new cards and send study messages
+    for (const card of nextCards) {
+      await pool.query(
+        `INSERT INTO cards (user_id, card_front, card_back, introduced, next_review)
+         VALUES ($1, $2, $3, TRUE, NOW())`,
+        [userId, card.card_front, card.card_back]
+      );
+      
+      // Send study message via LINE
+      const payload = {
+        to: lineUserId,
+        messages: [{ type: 'text', text: `${card.card_front} = ${card.card_back}` }]
+      };
+      await fetch('https://api.line.me/v2/bot/message/push', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${channelToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+    }
+    return true; // Next batch introduced
+  }
+  return false; // Not ready for next batch
 }
