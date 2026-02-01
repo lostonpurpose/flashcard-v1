@@ -7,7 +7,7 @@ const channelToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy') {
   // 1. Get all cards for user, ordered by id
   const { rows: userCards } = await pool.query(
-    'SELECT * FROM cards WHERE user_id = $1 ORDER BY id ASC',
+    'SELECT c.* FROM cards c JOIN master_cards mc ON c.card_front = mc.card_front WHERE c.user_id = $1 ORDER BY c.id ASC',
     [userId]
   );
 
@@ -35,6 +35,25 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
       [userId, difficulty]
     );
 
+
+    // Send message telling them about next 5 kanji
+    const nextBatchUnlocked = {
+      to: lineUserId,
+      messages: [
+        { type: 'text', text: "Nice work! You're on to the next 5 cards. Here they are:" }
+      ]
+    };
+      await fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${channelToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(nextBatchUnlocked),
+    });
+
+
+
     // 6. Insert new cards and send study messages
     for (const card of nextCards) {
       await pool.query(
@@ -42,22 +61,6 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
          VALUES ($1, $2, $3, TRUE, NOW())`,
         [userId, card.card_front, card.card_back]
       );
-
-     // Send message telling them about next 5 kanji
-      const nextBatchUnlocked = {
-        to: lineUserId,
-        messages: [
-          { type: 'text', text: "Nice work! You're on to the next 5 cards. Here they are:" }
-        ]
-      };
-        await fetch('https://api.line.me/v2/bot/message/push', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${channelToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(nextBatchUnlocked),
-      });
       
       // Send next five flashcards to learn via LINE
       const payload = {

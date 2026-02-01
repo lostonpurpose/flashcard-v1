@@ -31,8 +31,8 @@ export async function checkMessage(userAnswer, userId) {
     let correctAnswer;
     try {
         const result = await pool.query(
-            'SELECT card_back FROM master_cards WHERE card_front = $1 LIMIT 1',
-            [lastKanji]
+            'SELECT card_back FROM cards WHERE card_front = $1 AND user_id = $2 LIMIT 1',
+            [lastKanji, userId]
         );
         correctAnswer = result.rows[0]?.card_back?.toLowerCase().trim();
         if (!correctAnswer) {

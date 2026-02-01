@@ -134,22 +134,13 @@ app.post('/webhook', async (req, res) => {
             console.error("checkMessage failed:", err);
           }
 
-          // Fetch last kanji sent
+          // Fetch last kanji sent and its meaning from cards table
           const lastKanjiRes = await pool.query(
-            'SELECT last_kanji_sent FROM users WHERE id = $1',
+            'SELECT c.card_front, c.card_back FROM cards c JOIN users u ON u.id = c.user_id WHERE u.id = $1 AND c.card_front = u.last_kanji_sent LIMIT 1',
             [userId]
           );
-          const lastKanji = lastKanjiRes.rows[0]?.last_kanji_sent;
-
-          // Fetch correct meaning
-          let correctMeaning = '';
-          if (lastKanji) {
-            const meaningRes = await pool.query(
-              'SELECT card_back FROM master_cards WHERE card_front = $1 LIMIT 1',
-              [lastKanji]
-            );
-            correctMeaning = meaningRes.rows[0]?.card_back;
-          }
+          const lastKanji = lastKanjiRes.rows[0]?.card_front;
+          const correctMeaning = lastKanjiRes.rows[0]?.card_back;
 
           // Build and send feedback message if right/wrong
           let feedbackText;
@@ -181,7 +172,7 @@ app.post('/webhook', async (req, res) => {
 
         // 4. Try to introduce the next batch if ready
         try {
-          await introduceNextBatch(userId, 'easy', 5);
+          await introduceNextBatch(userId, lineUserId, 'easy');
         } catch (err) {
           console.error("introduceNextBatch failed:", err);
         }
