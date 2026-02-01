@@ -112,6 +112,46 @@ app.post('/webhook', async (req, res) => {
           }
         }
 
+        // Check if user wants to delete a card (format: "x :: delete")
+        if (userAnswer.includes(' :: delete')) {
+          const cardFront = userAnswer.replace(' :: delete', '').trim();
+          
+          if (cardFront) {
+            try {
+              const deleteResult = await pool.query(
+                'DELETE FROM cards WHERE user_id = $1 AND card_front = $2 RETURNING card_front, card_back',
+                [userId, cardFront]
+              );
+              
+              if (deleteResult.rowCount > 0) {
+                const deletedCard = deleteResult.rows[0];
+                const payload = {
+                  to: lineUserId,
+                  messages: [{ type: 'text', text: `Card deleted: ${deletedCard.card_front} = ${deletedCard.card_back}` }]
+                };
+                await fetch('https://api.line.me/v2/bot/message/push', {
+                  method: 'POST',
+                  headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload),
+                });
+              } else {
+                const payload = {
+                  to: lineUserId,
+                  messages: [{ type: 'text', text: `Card not found: ${cardFront}` }]
+                };
+                await fetch('https://api.line.me/v2/bot/message/push', {
+                  method: 'POST',
+                  headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload),
+                });
+              }
+              continue;
+            } catch (err) {
+              console.error("Failed to delete card", err);
+            }
+          }
+        }
+
         const userAnswerLower = userAnswer.toLowerCase();
 
         let cardId;
