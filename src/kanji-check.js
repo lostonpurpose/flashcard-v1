@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 
-// Return true if correct, false if not. Do not send messages here.
+// Return the specific meaning the user answered, or null if incorrect
 export async function checkMessage(userAnswer, userId) {
     console.log('[checkMessage] Called with:', { userAnswer, userId });
 
@@ -11,7 +11,6 @@ export async function checkMessage(userAnswer, userId) {
     // Get the most recent kanji sent to the user (the kanji character)
     let lastKanji;
     try {
-        // FIX: use id = $1, not line_user_id = $1
         const result = await pool.query(
             'SELECT last_kanji_sent FROM users WHERE id = $1',
             [userId]
@@ -19,31 +18,52 @@ export async function checkMessage(userAnswer, userId) {
         lastKanji = result.rows[0]?.last_kanji_sent;
         if (!lastKanji) {
             console.error('[checkMessage] No lastKanji found for user:', userId);
-            return;
+            return null;
         }
         console.log('[checkMessage] lastKanji from DB:', lastKanji);
     } catch (err) {
         console.error('[checkMessage] DB error:', err);
-        return;
+        return null;
     }
 
-    // Look up the correct answer (English) from master_cards
-    let correctAnswer;
+    // Look up the correct meanings (array) from cards
+    let correctMeanings;
+    let cardId;
     try {
         const result = await pool.query(
-            'SELECT card_back FROM cards WHERE card_front = $1 AND user_id = $2 LIMIT 1',
+            'SELECT id, card_back FROM cards WHERE card_front = $1 AND user_id = $2 LIMIT 1',
             [lastKanji, userId]
         );
-        correctAnswer = result.rows[0]?.card_back?.toLowerCase().trim();
-        if (!correctAnswer) {
-            console.error('[checkMessage] No correct answer found for kanji:', lastKanji);
+        cardId = result.rows[0]?.id;
+        const cardBack = result.rows[0]?.card_back;
+        
+        if (!cardBack) {
+            console.error('[checkMessage] No correct meanings found for kanji:', lastKanji);
+            return null;
         }
-        console.log('[checkMessage] correctAnswer from DB:', correctAnswer);
+        
+        // Parse JSON array or handle old format string
+        try {
+            correctMeanings = JSON.parse(cardBack);
+        } catch {
+            correctMeanings = [cardBack]; // Old format compatibility
+        }
+        
+        console.log('[checkMessage] correctMeanings from DB:', correctMeanings);
     } catch (err) {
-        console.error('[checkMessage] DB error (master_cards):', err);
-        return;
+        console.error('[checkMessage] DB error (cards):', err);
+        return null;
     }
 
-    // Compare user answer to correct answer
-    return userAnswer === correctAnswer;
+    // Check if user's answer matches any of the correct meanings
+    const userAnswerNormalized = userAnswer.toLowerCase().trim();
+    const matchedMeaning = correctMeanings.find(meaning => 
+        meaning.toLowerCase().trim() === userAnswerNormalized
+    );
+
+    if (matchedMeaning) {
+        return { cardId, matchedMeaning, allMeanings: correctMeanings };
+    }
+    
+    return null;
 }

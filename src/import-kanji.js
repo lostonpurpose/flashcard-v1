@@ -18,11 +18,15 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 (async () => {
   // For each kanji card, insert into master_cards with the given difficulty
-  for (const [kanjiChar, english] of Object.entries(kanji)) {
+  for (const [kanjiChar, meanings] of Object.entries(kanji)) {
+    // Support both old format (string) and new format (array)
+    const meaningsArray = Array.isArray(meanings) ? meanings : [meanings];
+    const meaningsJson = JSON.stringify(meaningsArray);
+    
     await pool.query(
       // Use ON CONFLICT DO NOTHING to avoid duplicate entries (thanks to UNIQUE constraint)
       'INSERT INTO master_cards (card_front, card_back, difficulty) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-      [kanjiChar, english, difficulty]
+      [kanjiChar, meaningsJson, difficulty]
     );
   }
   // Close the database connection pool

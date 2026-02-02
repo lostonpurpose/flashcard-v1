@@ -56,16 +56,35 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
 
     // 6. Insert new cards and send study messages
     for (const card of nextCards) {
-      await pool.query(
+      const insertResult = await pool.query(
         `INSERT INTO cards (user_id, card_front, card_back, introduced, next_review)
-         VALUES ($1, $2, $3, TRUE, NOW())`,
+         VALUES ($1, $2, $3, TRUE, NOW())
+         RETURNING id`,
         [userId, card.card_front, card.card_back]
       );
       
+      const newCardId = insertResult.rows[0].id;
+      
+      // Initialize card_meanings for each meaning
+      let meanings;
+      try {
+        meanings = JSON.parse(card.card_back);
+      } catch {
+        meanings = [card.card_back];
+      }
+      
+      for (const meaning of meanings) {
+        await pool.query(
+          `INSERT INTO card_meanings (card_id, meaning) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [newCardId, meaning]
+        );
+      }
+      
       // Send next five flashcards to learn via LINE
+      const meaningText = meanings.join(', ');
       const payload = {
         to: lineUserId,
-        messages: [{ type: 'text', text: `${card.card_front} = ${card.card_back}` }]
+        messages: [{ type: 'text', text: `${card.card_front} = ${meaningText}` }]
       };
       await fetch('https://api.line.me/v2/bot/message/push', {
         method: 'POST',
