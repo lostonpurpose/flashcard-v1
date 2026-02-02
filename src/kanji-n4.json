@@ -117,7 +117,7 @@
   "寂": { "meanings": ["loneliness", "solitude"], "readings": ["さびしい", "じゃく"] },
   "弱": { "meanings": ["weak"], "readings": ["よわい", "じゃく"] },
   "惹": { "meanings": ["attract", "draw"], "readings": ["ひく", "じゃ"] },
-  "主": { "meanings": ["main", "master"], "readings": ["ぬし", "しゅ"] },
+
   "取": { "meanings": ["take", "capture"], "readings": ["とる", "しゅ"] },
   "守": { "meanings": ["protect", "guard"], "readings": ["まもる", "しゅ"] },
   "参加": { "meanings": ["participation", "join"], "readings": ["さんか"] },
@@ -210,6 +210,7 @@
   "事": { "meanings": ["thing", "matter"], "readings": ["こと", "じ"] },
   "自": { "meanings": ["self"], "readings": ["みずから", "じ"] },
   "社": { "meanings": ["company", "shrine"], "readings": ["しゃ"] },
+
   "発": { "meanings": ["depart", "emit"], "readings": ["はつ", "たつ"] },
   "者": { "meanings": ["person"], "readings": ["もの", "しゃ"] },
   "地": { "meanings": ["ground", "place"], "readings": ["ち", "じ"] },
@@ -223,6 +224,7 @@
   "手": { "meanings": ["hand"], "readings": ["て", "しゅ"] },
   "力": { "meanings": ["power", "strength"], "readings": ["ちから", "りょく"] },
   "問": { "meanings": ["question"], "readings": ["とい", "とう", "もん"] },
+
   "代": { "meanings": ["substitute", "generation"], "readings": ["かわる", "だい"] },
   "明": { "meanings": ["bright", "clear"], "readings": ["あかるい", "めい"] },
   "動": { "meanings": ["move"], "readings": ["うごく", "どう"] },
@@ -236,6 +238,7 @@
   "題": { "meanings": ["topic"], "readings": ["だい"] },
   "意": { "meanings": ["meaning", "intention"], "readings": ["い"] },
   "不": { "meanings": ["not", "negative"], "readings": ["ふ", "ぶ"] },
+
   "作": { "meanings": ["make"], "readings": ["つくる", "さく"] },
   "用": { "meanings": ["use"], "readings": ["つかう", "よう"] },
   "度": { "meanings": ["degree", "time"], "readings": ["ど", "たび"] },
@@ -250,6 +253,7 @@
   "正": { "meanings": ["correct"], "readings": ["ただしい", "せい"] },
   "安": { "meanings": ["cheap", "safe"], "readings": ["やすい", "あん"] },
   "院": { "meanings": ["institution"], "readings": ["いん"] },
+
   "心": { "meanings": ["heart", "mind"], "readings": ["こころ", "しん"] },
   "界": { "meanings": ["world", "boundary"], "readings": ["かい"] },
   "教": { "meanings": ["teach"], "readings": ["おしえる", "きょう"] },
@@ -260,27 +264,34 @@
   "計": { "meanings": ["measure", "plan"], "readings": ["はかる", "けい"] },
   "英": { "meanings": ["England", "English"], "readings": ["えい"] },
   "語": { "meanings": ["language", "word"], "readings": ["ご"] },
+
   "売": { "meanings": ["sell"], "readings": ["うる", "ばい"] },
   "買": { "meanings": ["buy"], "readings": ["かう", "ばい"] },
   "午": { "meanings": ["noon"], "readings": ["ご"] },
   "前": { "meanings": ["before", "front"], "readings": ["まえ", "ぜん"] },
   "後": { "meanings": ["after", "back"], "readings": ["あと", "ご"] },
+
   "春": { "meanings": ["spring"], "readings": ["はる", "しゅん"] },
   "夏": { "meanings": ["summer"], "readings": ["なつ", "か"] },
   "秋": { "meanings": ["autumn"], "readings": ["あき", "しゅう"] },
   "冬": { "meanings": ["winter"], "readings": ["ふゆ", "とう"] },
+
   "朝": { "meanings": ["morning"], "readings": ["あさ", "ちょう"] },
   "昼": { "meanings": ["noon", "daytime"], "readings": ["ひる", "ちゅう"] },
   "夜": { "meanings": ["night"], "readings": ["よる", "や"] },
+
   "駅": { "meanings": ["station"], "readings": ["えき"] },
   "店": { "meanings": ["shop", "store"], "readings": ["みせ", "てん"] },
   "町": { "meanings": ["town"], "readings": ["まち", "ちょう"] },
   "村": { "meanings": ["village"], "readings": ["むら", "そん"] },
+
   "銀": { "meanings": ["silver"], "readings": ["ぎん"] },
   "病": { "meanings": ["illness"], "readings": ["やまい", "びょう"] },
+
   "歩": { "meanings": ["walk"], "readings": ["あるく", "ほ"] },
   "走": { "meanings": ["run"], "readings": ["はしる", "そう"] },
   "止": { "meanings": ["stop"], "readings": ["とまる", "とめる", "し"] },
+
   "死": { "meanings": ["die"], "readings": ["しぬ", "し"] },
   "住": { "meanings": ["live", "reside"], "readings": ["すむ", "じゅう"] },
   "働": { "meanings": ["work"], "readings": ["はたらく", "どう"] },
@@ -288,28 +299,32 @@
   "帰": { "meanings": ["return"], "readings": ["かえる", "き"] },
   "始": { "meanings": ["begin"], "readings": ["はじめる", "し"] },
   "終": { "meanings": ["end"], "readings": ["おわる", "しゅう"] },
+
   "歌": { "meanings": ["song", "sing"], "readings": ["うた", "か"] },
   "注": { "meanings": ["pour", "note"], "readings": ["そそぐ", "ちゅう"] },
   "写": { "meanings": ["copy", "take photo"], "readings": ["うつす", "しゃ"] },
   "真": { "meanings": ["true", "real"], "readings": ["ま", "しん"] },
+
   "魚": { "meanings": ["fish"], "readings": ["さかな", "ぎょ"] },
   "肉": { "meanings": ["meat"], "readings": ["にく"] },
   "牛": { "meanings": ["cow"], "readings": ["うし", "ぎゅう"] },
   "鳥": { "meanings": ["bird"], "readings": ["とり", "ちょう"] },
+
   "飯": { "meanings": ["meal", "cooked rice"], "readings": ["めし", "はん"] },
   "茶": { "meanings": ["tea"], "readings": ["ちゃ", "さ"] },
   "酒": { "meanings": ["alcohol"], "readings": ["さけ", "しゅ"] },
-  "借": { "meanings": ["borrow"], "readings": ["かりる", "しゃく"] },
   "貸": { "meanings": ["lend"], "readings": ["かす", "たい"] },
+
   "広": { "meanings": ["wide"], "readings": ["ひろい", "こう"] },
   "近": { "meanings": ["near"], "readings": ["ちかい", "きん"] },
   "遠": { "meanings": ["far"], "readings": ["とおい", "えん"] },
   "重": { "meanings": ["heavy"], "readings": ["おもい", "じゅう"] },
-  "軽": { "meanings": ["light"], "readings": ["かるい", "けい"] },
+
   "早": { "meanings": ["early", "fast"], "readings": ["はやい", "そう"] },
   "遅": { "meanings": ["late", "slow"], "readings": ["おそい", "ち"] },
   "悪": { "meanings": ["bad"], "readings": ["わるい", "あく"] },
   "良": { "meanings": ["good"], "readings": ["よい", "りょう"] },
+
   "晴": { "meanings": ["clear up"], "readings": ["はれる", "せい"] },
   "雨": { "meanings": ["rain"], "readings": ["あめ", "う"] },
   "雪": { "meanings": ["snow"], "readings": ["ゆき", "せつ"] },
@@ -318,14 +333,14 @@
   "音": { "meanings": ["sound"], "readings": ["おと", "おん"] },
   "漢": { "meanings": ["Chinese", "Han"], "readings": ["かん"] },
 
-  "駅": { "meanings": ["station"], "readings": ["えき"] },
   "病院": { "meanings": ["hospital"], "readings": ["びょういん"] },
   "銀行": { "meanings": ["bank"], "readings": ["ぎんこう"] },
   "会社": { "meanings": ["company"], "readings": ["かいしゃ"] },
-  "店": { "meanings": ["shop", "store"], "readings": ["みせ", "てん"] },
   "空港": { "meanings": ["airport"], "readings": ["くうこう"] },
   "電車": { "meanings": ["train"], "readings": ["でんしゃ"] },
   "自転車": { "meanings": ["bicycle"], "readings": ["じてんしゃ"] },
+  "電話": { "meanings": ["telephone"], "readings": ["でんわ"] },
+
   "料理": { "meanings": ["cooking", "cuisine"], "readings": ["りょうり"] },
   "運動": { "meanings": ["exercise", "movement"], "readings": ["うんどう"] },
   "買い物": { "meanings": ["shopping"], "readings": ["かいもの"] },
