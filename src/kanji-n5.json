@@ -1,124 +1,931 @@
 {
-  "一": { "meanings": ["one"], "readings": ["いち", "ひと"] },
-  "二": { "meanings": ["two"], "readings": ["に", "ふた"] },
-  "三": { "meanings": ["three"], "readings": ["さん", "み"] },
-  "四": { "meanings": ["four"], "readings": ["よん", "し", "よ"] },
-  "五": { "meanings": ["five"], "readings": ["ご", "いつ"] },
-  "六": { "meanings": ["six"], "readings": ["ろく", "む"] },
-  "七": { "meanings": ["seven"], "readings": ["なな", "しち"] },
-  "八": { "meanings": ["eight"], "readings": ["はち", "や"] },
-  "九": { "meanings": ["nine"], "readings": ["きゅう", "く"] },
-  "十": { "meanings": ["ten"], "readings": ["じゅう", "とお"] },
-
-  "人": { "meanings": ["person", "human"], "readings": ["ひと", "じん", "にん"] },
-  "日": { "meanings": ["sun", "day"], "readings": ["ひ", "にち", "じつ"] },
-  "月": { "meanings": ["moon", "month"], "readings": ["つき", "げつ", "がつ"] },
-  "年": { "meanings": ["year"], "readings": ["とし", "ねん"] },
-  "本": { "meanings": ["book", "origin"], "readings": ["ほん"] },
-  "中": { "meanings": ["middle", "inside"], "readings": ["なか", "ちゅう"] },
-  "大": { "meanings": ["big", "large"], "readings": ["おお", "だい", "たい"] },
-  "小": { "meanings": ["small", "little"], "readings": ["ちい", "しょう"] },
-  "上": { "meanings": ["up", "above"], "readings": ["うえ", "じょう"] },
-  "下": { "meanings": ["down", "below"], "readings": ["した", "げ", "か"] },
-  "左": { "meanings": ["left"], "readings": ["ひだり", "さ"] },
-  "右": { "meanings": ["right"], "readings": ["みぎ", "う", "ゆう"] },
-
-  "山": { "meanings": ["mountain"], "readings": ["やま", "さん"] },
-  "川": { "meanings": ["river"], "readings": ["かわ", "せん"] },
-  "田": { "meanings": ["rice field"], "readings": ["た", "でん"] },
-  "天": { "meanings": ["heaven", "sky"], "readings": ["てん"] },
-  "気": { "meanings": ["spirit", "air"], "readings": ["き"] },
-
-  "女": { "meanings": ["woman", "female"], "readings": ["おんな", "じょ"] },
-  "男": { "meanings": ["man", "male"], "readings": ["おとこ", "だん"] },
-  "子": { "meanings": ["child"], "readings": ["こ", "し"] },
-  "母": { "meanings": ["mother"], "readings": ["はは", "ぼ"] },
-  "父": { "meanings": ["father"], "readings": ["ちち", "ふ"] },
-
-  "友": { "meanings": ["friend"], "readings": ["とも", "ゆう"] },
-  "学": { "meanings": ["study", "learning"], "readings": ["がく"] },
-  "校": { "meanings": ["school"], "readings": ["こう"] },
-  "生": { "meanings": ["life", "student", "raw"], "readings": ["せい", "しょう", "い"] },
-  "先": { "meanings": ["before", "ahead"], "readings": ["さき", "せん"] },
-
-  "名": { "meanings": ["name"], "readings": ["な", "めい", "みょう"] },
-  "字": { "meanings": ["character", "letter"], "readings": ["じ"] },
-  "文": { "meanings": ["sentence", "text"], "readings": ["ぶん", "もん"] },
-
-  "水": { "meanings": ["water"], "readings": ["みず", "すい"] },
-  "火": { "meanings": ["fire"], "readings": ["ひ", "か"] },
-  "木": { "meanings": ["tree", "wood"], "readings": ["き", "もく", "ぼく"] },
-  "金": { "meanings": ["gold", "money"], "readings": ["かね", "きん"] },
-  "土": { "meanings": ["earth", "soil"], "readings": ["つち", "ど"] },
-
-  "白": { "meanings": ["white"], "readings": ["しろ", "はく"] },
-  "黒": { "meanings": ["black"], "readings": ["くろ", "こく"] },
-  "赤": { "meanings": ["red"], "readings": ["あか", "せき"] },
-  "青": { "meanings": ["blue"], "readings": ["あお", "せい"] },
-
-  "円": { "meanings": ["yen", "circle"], "readings": ["えん"] },
-  "万": { "meanings": ["ten thousand"], "readings": ["まん"] },
-
-  "時": { "meanings": ["time", "hour"], "readings": ["じ", "とき"] },
-  "分": { "meanings": ["minute", "part"], "readings": ["ふん", "ぶん", "わ"] },
-
-  "行": { "meanings": ["go", "conduct"], "readings": ["いく", "ゆく", "こう"] },
-  "来": { "meanings": ["come", "next"], "readings": ["くる", "らい"] },
-  "見": { "meanings": ["see", "look"], "readings": ["みる", "けん"] },
-  "食": { "meanings": ["eat", "food"], "readings": ["たべる", "しょく"] },
-  "飲": { "meanings": ["drink"], "readings": ["のむ", "いん"] },
-  "話": { "meanings": ["speak", "talk"], "readings": ["はなす", "わ"] },
-  "聞": { "meanings": ["hear", "listen"], "readings": ["きく", "ぶん"] },
-  "読": { "meanings": ["read"], "readings": ["よむ", "どく"] },
-  "書": { "meanings": ["write"], "readings": ["かく", "しょ"] },
-
-  "今": { "meanings": ["now"], "readings": ["いま", "こん"] },
-  "何": { "meanings": ["what"], "readings": ["なに", "なん"] },
-
-  "日本": { "meanings": ["Japan"], "readings": ["にほん"] },
-  "日本人": { "meanings": ["Japanese person"], "readings": ["にほんじん"] },
-  "学生": { "meanings": ["student"], "readings": ["がくせい"] },
-  "先生": { "meanings": ["teacher", "master"], "readings": ["せんせい"] },
-  "友達": { "meanings": ["friend"], "readings": ["ともだち"] },
-  "大人": { "meanings": ["adult"], "readings": ["おとな"] },
-  "男の子": { "meanings": ["boy"], "readings": ["おとこのこ"] },
-  "女の子": { "meanings": ["girl"], "readings": ["おんなのこ"] },
-
-  "学校": { "meanings": ["school"], "readings": ["がっこう"] },
-  "文字": { "meanings": ["letter", "character"], "readings": ["もじ"] },
-  "名前": { "meanings": ["name"], "readings": ["なまえ"] },
-  "日本語": { "meanings": ["Japanese language"], "readings": ["にほんご"] },
-
-  "一人": { "meanings": ["one person", "alone"], "readings": ["ひとり"] },
-  "一日": { "meanings": ["one day"], "readings": ["いちにち"] },
-  "今日": { "meanings": ["today"], "readings": ["きょう"] },
-  "今月": { "meanings": ["this month"], "readings": ["こんげつ"] },
-  "今年": { "meanings": ["this year"], "readings": ["ことし"] },
-  "時間": { "meanings": ["time", "hours"], "readings": ["じかん"] },
-
-  "行く": { "meanings": ["go"], "readings": ["いく"] },
-  "来る": { "meanings": ["come"], "readings": ["くる"] },
-  "見る": { "meanings": ["see", "watch"], "readings": ["みる"] },
-  "食べる": { "meanings": ["eat"], "readings": ["たべる"] },
-  "飲む": { "meanings": ["drink"], "readings": ["のむ"] },
-  "話す": { "meanings": ["speak", "talk"], "readings": ["はなす"] },
-  "聞く": { "meanings": ["listen", "ask"], "readings": ["きく"] },
-  "読む": { "meanings": ["read"], "readings": ["よむ"] },
-  "書く": { "meanings": ["write"], "readings": ["かく"] },
-
-  "山川": { "meanings": ["mountains and rivers"], "readings": ["やまかわ"] },
-  "天気": { "meanings": ["weather"], "readings": ["てんき"] },
-
-  "月曜日": { "meanings": ["Monday"], "readings": ["げつようび"] },
-  "火曜日": { "meanings": ["Tuesday"], "readings": ["かようび"] },
-  "水曜日": { "meanings": ["Wednesday"], "readings": ["すいようび"] },
-  "木曜日": { "meanings": ["Thursday"], "readings": ["もくようび"] },
-  "金曜日": { "meanings": ["Friday"], "readings": ["きんようび"] },
-  "土曜日": { "meanings": ["Saturday"], "readings": ["どようび"] },
-  "日曜日": { "meanings": ["Sunday"], "readings": ["にちようび"] },
-
-  "白い": { "meanings": ["white"], "readings": ["しろい"] },
-  "黒い": { "meanings": ["black"], "readings": ["くろい"] },
-  "赤い": { "meanings": ["red"], "readings": ["あかい"] },
-  "青い": { "meanings": ["blue"], "readings": ["あおい"] }
+  "一": {
+    "meanings": [
+      "one"
+    ],
+    "readings": [
+      "いち",
+      "ひと"
+    ]
+  },
+  "二": {
+    "meanings": [
+      "two"
+    ],
+    "readings": [
+      "に",
+      "ふた"
+    ]
+  },
+  "三": {
+    "meanings": [
+      "three"
+    ],
+    "readings": [
+      "さん",
+      "み"
+    ]
+  },
+  "四": {
+    "meanings": [
+      "four"
+    ],
+    "readings": [
+      "よん",
+      "し",
+      "よ"
+    ]
+  },
+  "五": {
+    "meanings": [
+      "five"
+    ],
+    "readings": [
+      "ご",
+      "いつ"
+    ]
+  },
+  "六": {
+    "meanings": [
+      "six"
+    ],
+    "readings": [
+      "ろく",
+      "む"
+    ]
+  },
+  "七": {
+    "meanings": [
+      "seven"
+    ],
+    "readings": [
+      "なな",
+      "しち"
+    ]
+  },
+  "八": {
+    "meanings": [
+      "eight"
+    ],
+    "readings": [
+      "はち",
+      "や"
+    ]
+  },
+  "九": {
+    "meanings": [
+      "nine"
+    ],
+    "readings": [
+      "きゅう",
+      "く"
+    ]
+  },
+  "十": {
+    "meanings": [
+      "ten"
+    ],
+    "readings": [
+      "じゅう",
+      "とお"
+    ]
+  },
+  "人": {
+    "meanings": [
+      "person",
+      "human"
+    ],
+    "readings": [
+      "ひと",
+      "じん",
+      "にん"
+    ]
+  },
+  "日": {
+    "meanings": [
+      "sun",
+      "day"
+    ],
+    "readings": [
+      "ひ",
+      "にち",
+      "じつ"
+    ]
+  },
+  "月": {
+    "meanings": [
+      "moon",
+      "month"
+    ],
+    "readings": [
+      "つき",
+      "げつ",
+      "がつ"
+    ]
+  },
+  "年": {
+    "meanings": [
+      "year"
+    ],
+    "readings": [
+      "とし",
+      "ねん"
+    ]
+  },
+  "本": {
+    "meanings": [
+      "book",
+      "origin"
+    ],
+    "readings": [
+      "ほん"
+    ]
+  },
+  "中": {
+    "meanings": [
+      "middle",
+      "inside"
+    ],
+    "readings": [
+      "なか",
+      "ちゅう"
+    ]
+  },
+  "大": {
+    "meanings": [
+      "big",
+      "large"
+    ],
+    "readings": [
+      "おお",
+      "だい",
+      "たい"
+    ]
+  },
+  "小": {
+    "meanings": [
+      "small",
+      "little"
+    ],
+    "readings": [
+      "ちい",
+      "しょう"
+    ]
+  },
+  "上": {
+    "meanings": [
+      "up",
+      "above"
+    ],
+    "readings": [
+      "うえ",
+      "じょう"
+    ]
+  },
+  "下": {
+    "meanings": [
+      "down",
+      "below"
+    ],
+    "readings": [
+      "した",
+      "げ",
+      "か"
+    ]
+  },
+  "左": {
+    "meanings": [
+      "left"
+    ],
+    "readings": [
+      "ひだり",
+      "さ"
+    ]
+  },
+  "右": {
+    "meanings": [
+      "right"
+    ],
+    "readings": [
+      "みぎ",
+      "う",
+      "ゆう"
+    ]
+  },
+  "山": {
+    "meanings": [
+      "mountain"
+    ],
+    "readings": [
+      "やま",
+      "さん"
+    ]
+  },
+  "川": {
+    "meanings": [
+      "river"
+    ],
+    "readings": [
+      "かわ",
+      "せん"
+    ]
+  },
+  "田": {
+    "meanings": [
+      "rice field"
+    ],
+    "readings": [
+      "た",
+      "でん"
+    ]
+  },
+  "天": {
+    "meanings": [
+      "heaven",
+      "sky"
+    ],
+    "readings": [
+      "てん"
+    ]
+  },
+  "女": {
+    "meanings": [
+      "woman",
+      "female"
+    ],
+    "readings": [
+      "おんな",
+      "じょ"
+    ]
+  },
+  "男": {
+    "meanings": [
+      "man",
+      "male"
+    ],
+    "readings": [
+      "おとこ",
+      "だん"
+    ]
+  },
+  "子": {
+    "meanings": [
+      "child"
+    ],
+    "readings": [
+      "こ",
+      "し"
+    ]
+  },
+  "母": {
+    "meanings": [
+      "mother"
+    ],
+    "readings": [
+      "はは",
+      "ぼ"
+    ]
+  },
+  "父": {
+    "meanings": [
+      "father"
+    ],
+    "readings": [
+      "ちち",
+      "ふ"
+    ]
+  },
+  "友": {
+    "meanings": [
+      "friend"
+    ],
+    "readings": [
+      "とも",
+      "ゆう"
+    ]
+  },
+  "学": {
+    "meanings": [
+      "study",
+      "learning"
+    ],
+    "readings": [
+      "がく"
+    ]
+  },
+  "校": {
+    "meanings": [
+      "school"
+    ],
+    "readings": [
+      "こう"
+    ]
+  },
+  "生": {
+    "meanings": [
+      "life",
+      "student",
+      "raw"
+    ],
+    "readings": [
+      "せい",
+      "しょう",
+      "い"
+    ]
+  },
+  "先": {
+    "meanings": [
+      "before",
+      "ahead"
+    ],
+    "readings": [
+      "さき",
+      "せん"
+    ]
+  },
+  "名": {
+    "meanings": [
+      "name"
+    ],
+    "readings": [
+      "な",
+      "めい",
+      "みょう"
+    ]
+  },
+  "字": {
+    "meanings": [
+      "character",
+      "letter"
+    ],
+    "readings": [
+      "じ"
+    ]
+  },
+  "文": {
+    "meanings": [
+      "sentence",
+      "text"
+    ],
+    "readings": [
+      "ぶん",
+      "もん"
+    ]
+  },
+  "水": {
+    "meanings": [
+      "water"
+    ],
+    "readings": [
+      "みず",
+      "すい"
+    ]
+  },
+  "火": {
+    "meanings": [
+      "fire"
+    ],
+    "readings": [
+      "ひ",
+      "か"
+    ]
+  },
+  "木": {
+    "meanings": [
+      "tree",
+      "wood"
+    ],
+    "readings": [
+      "き",
+      "もく",
+      "ぼく"
+    ]
+  },
+  "金": {
+    "meanings": [
+      "gold",
+      "money"
+    ],
+    "readings": [
+      "かね",
+      "きん"
+    ]
+  },
+  "土": {
+    "meanings": [
+      "earth",
+      "soil"
+    ],
+    "readings": [
+      "つち",
+      "ど"
+    ]
+  },
+  "白": {
+    "meanings": [
+      "white"
+    ],
+    "readings": [
+      "しろ",
+      "はく"
+    ]
+  },
+  "黒": {
+    "meanings": [
+      "black"
+    ],
+    "readings": [
+      "くろ",
+      "こく"
+    ]
+  },
+  "赤": {
+    "meanings": [
+      "red"
+    ],
+    "readings": [
+      "あか",
+      "せき"
+    ]
+  },
+  "青": {
+    "meanings": [
+      "blue"
+    ],
+    "readings": [
+      "あお",
+      "せい"
+    ]
+  },
+  "円": {
+    "meanings": [
+      "yen",
+      "circle"
+    ],
+    "readings": [
+      "えん"
+    ]
+  },
+  "万": {
+    "meanings": [
+      "ten thousand"
+    ],
+    "readings": [
+      "まん"
+    ]
+  },
+  "時": {
+    "meanings": [
+      "time",
+      "hour"
+    ],
+    "readings": [
+      "じ",
+      "とき"
+    ]
+  },
+  "分": {
+    "meanings": [
+      "minute",
+      "part"
+    ],
+    "readings": [
+      "ふん",
+      "ぶん",
+      "わ"
+    ]
+  },
+  "行": {
+    "meanings": [
+      "go",
+      "conduct"
+    ],
+    "readings": [
+      "いく",
+      "ゆく",
+      "こう"
+    ]
+  },
+  "来": {
+    "meanings": [
+      "come",
+      "next"
+    ],
+    "readings": [
+      "くる",
+      "らい"
+    ]
+  },
+  "見": {
+    "meanings": [
+      "see",
+      "look"
+    ],
+    "readings": [
+      "みる",
+      "けん"
+    ]
+  },
+  "食": {
+    "meanings": [
+      "eat",
+      "food"
+    ],
+    "readings": [
+      "たべる",
+      "しょく"
+    ]
+  },
+  "飲": {
+    "meanings": [
+      "drink"
+    ],
+    "readings": [
+      "のむ",
+      "いん"
+    ]
+  },
+  "話": {
+    "meanings": [
+      "speak",
+      "talk"
+    ],
+    "readings": [
+      "はなす",
+      "わ"
+    ]
+  },
+  "聞": {
+    "meanings": [
+      "hear",
+      "listen"
+    ],
+    "readings": [
+      "きく",
+      "ぶん"
+    ]
+  },
+  "読": {
+    "meanings": [
+      "read"
+    ],
+    "readings": [
+      "よむ",
+      "どく"
+    ]
+  },
+  "書": {
+    "meanings": [
+      "write"
+    ],
+    "readings": [
+      "かく",
+      "しょ"
+    ]
+  },
+  "今": {
+    "meanings": [
+      "now"
+    ],
+    "readings": [
+      "いま",
+      "こん"
+    ]
+  },
+  "何": {
+    "meanings": [
+      "what"
+    ],
+    "readings": [
+      "なに",
+      "なん"
+    ]
+  },
+  "日本": {
+    "meanings": [
+      "Japan"
+    ],
+    "readings": [
+      "にほん"
+    ]
+  },
+  "日本人": {
+    "meanings": [
+      "Japanese person"
+    ],
+    "readings": [
+      "にほんじん"
+    ]
+  },
+  "学生": {
+    "meanings": [
+      "student"
+    ],
+    "readings": [
+      "がくせい"
+    ]
+  },
+  "先生": {
+    "meanings": [
+      "teacher",
+      "master"
+    ],
+    "readings": [
+      "せんせい"
+    ]
+  },
+  "友達": {
+    "meanings": [
+      "friend"
+    ],
+    "readings": [
+      "ともだち"
+    ]
+  },
+  "大人": {
+    "meanings": [
+      "adult"
+    ],
+    "readings": [
+      "おとな"
+    ]
+  },
+  "男の子": {
+    "meanings": [
+      "boy"
+    ],
+    "readings": [
+      "おとこのこ"
+    ]
+  },
+  "女の子": {
+    "meanings": [
+      "girl"
+    ],
+    "readings": [
+      "おんなのこ"
+    ]
+  },
+  "学校": {
+    "meanings": [
+      "school"
+    ],
+    "readings": [
+      "がっこう"
+    ]
+  },
+  "文字": {
+    "meanings": [
+      "letter",
+      "character"
+    ],
+    "readings": [
+      "もじ"
+    ]
+  },
+  "名前": {
+    "meanings": [
+      "name"
+    ],
+    "readings": [
+      "なまえ"
+    ]
+  },
+  "日本語": {
+    "meanings": [
+      "Japanese language"
+    ],
+    "readings": [
+      "にほんご"
+    ]
+  },
+  "一人": {
+    "meanings": [
+      "one person",
+      "alone"
+    ],
+    "readings": [
+      "ひとり"
+    ]
+  },
+  "一日": {
+    "meanings": [
+      "one day"
+    ],
+    "readings": [
+      "いちにち"
+    ]
+  },
+  "今日": {
+    "meanings": [
+      "today"
+    ],
+    "readings": [
+      "きょう"
+    ]
+  },
+  "今月": {
+    "meanings": [
+      "this month"
+    ],
+    "readings": [
+      "こんげつ"
+    ]
+  },
+  "今年": {
+    "meanings": [
+      "this year"
+    ],
+    "readings": [
+      "ことし"
+    ]
+  },
+  "時間": {
+    "meanings": [
+      "time",
+      "hours"
+    ],
+    "readings": [
+      "じかん"
+    ]
+  },
+  "行く": {
+    "meanings": [
+      "go"
+    ],
+    "readings": [
+      "いく"
+    ]
+  },
+  "来る": {
+    "meanings": [
+      "come"
+    ],
+    "readings": [
+      "くる"
+    ]
+  },
+  "見る": {
+    "meanings": [
+      "see",
+      "watch"
+    ],
+    "readings": [
+      "みる"
+    ]
+  },
+  "食べる": {
+    "meanings": [
+      "eat"
+    ],
+    "readings": [
+      "たべる"
+    ]
+  },
+  "飲む": {
+    "meanings": [
+      "drink"
+    ],
+    "readings": [
+      "のむ"
+    ]
+  },
+  "話す": {
+    "meanings": [
+      "speak",
+      "talk"
+    ],
+    "readings": [
+      "はなす"
+    ]
+  },
+  "聞く": {
+    "meanings": [
+      "listen",
+      "ask"
+    ],
+    "readings": [
+      "きく"
+    ]
+  },
+  "読む": {
+    "meanings": [
+      "read"
+    ],
+    "readings": [
+      "よむ"
+    ]
+  },
+  "書く": {
+    "meanings": [
+      "write"
+    ],
+    "readings": [
+      "かく"
+    ]
+  },
+  "山川": {
+    "meanings": [
+      "mountains and rivers"
+    ],
+    "readings": [
+      "やまかわ"
+    ]
+  },
+  "天気": {
+    "meanings": [
+      "weather"
+    ],
+    "readings": [
+      "てんき"
+    ]
+  },
+  "月曜日": {
+    "meanings": [
+      "Monday"
+    ],
+    "readings": [
+      "げつようび"
+    ]
+  },
+  "火曜日": {
+    "meanings": [
+      "Tuesday"
+    ],
+    "readings": [
+      "かようび"
+    ]
+  },
+  "水曜日": {
+    "meanings": [
+      "Wednesday"
+    ],
+    "readings": [
+      "すいようび"
+    ]
+  },
+  "木曜日": {
+    "meanings": [
+      "Thursday"
+    ],
+    "readings": [
+      "もくようび"
+    ]
+  },
+  "金曜日": {
+    "meanings": [
+      "Friday"
+    ],
+    "readings": [
+      "きんようび"
+    ]
+  },
+  "土曜日": {
+    "meanings": [
+      "Saturday"
+    ],
+    "readings": [
+      "どようび"
+    ]
+  },
+  "日曜日": {
+    "meanings": [
+      "Sunday"
+    ],
+    "readings": [
+      "にちようび"
+    ]
+  },
+  "白い": {
+    "meanings": [
+      "white"
+    ],
+    "readings": [
+      "しろい"
+    ]
+  },
+  "黒い": {
+    "meanings": [
+      "black"
+    ],
+    "readings": [
+      "くろい"
+    ]
+  },
+  "赤い": {
+    "meanings": [
+      "red"
+    ],
+    "readings": [
+      "あかい"
+    ]
+  },
+  "青い": {
+    "meanings": [
+      "blue"
+    ],
+    "readings": [
+      "あおい"
+    ]
+  }
 }
