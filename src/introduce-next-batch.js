@@ -5,9 +5,15 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const channelToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
 export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy') {
-  // 1. Get all cards for user, ordered by id
+  // 1. Get all cards for user with their mastery status
   const { rows: userCards } = await pool.query(
-    'SELECT c.* FROM cards c JOIN master_cards mc ON c.card_front = mc.card_front WHERE c.user_id = $1 ORDER BY c.id ASC',
+    `SELECT c.id, c.card_front, c.card_back, 
+            COALESCE(MAX(cm.correct_count), 0) as correct_count
+     FROM cards c
+     LEFT JOIN card_meanings cm ON c.id = cm.card_id
+     WHERE c.user_id = $1
+     GROUP BY c.id
+     ORDER BY c.id ASC`,
     [userId]
   );
 
@@ -21,7 +27,7 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
   const currentBatch = batches[batches.length - 1];
 
   // 4. Check if current batch is mastered
-  const mastered = currentBatch.length === 5 && currentBatch.every(card => card.correct_count >= 1);
+  const mastered = currentBatch && currentBatch.length === 5 && currentBatch.every(card => card.correct_count >= 1);
 
   if (mastered) {
     // 5. Get next 5 master_cards not yet assigned to user, filtered by difficulty
@@ -35,6 +41,24 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
       [userId, difficulty]
     );
 
+    if (nextCards.length === 0) {
+      // No more cards available
+      const noMoreCards = {
+        to: lineUserId,
+        messages: [
+          { type: 'text', text: "You've completed all available cards at this difficulty level! 🎉" }
+        ]
+      };
+      await fetch('https://api.line.me/v2/bot/message/push', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${channelToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(noMoreCards),
+      });
+      return false;
+    }
 
     // Send message telling them about next 5 kanji
     const nextBatchUnlocked = {
@@ -43,7 +67,7 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
         { type: 'text', text: "Nice work! You're on to the next 5 cards. Here they are:" }
       ]
     };
-      await fetch('https://api.line.me/v2/bot/message/push', {
+    await fetch('https://api.line.me/v2/bot/message/push', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${channelToken}`,
@@ -51,8 +75,6 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
       },
       body: JSON.stringify(nextBatchUnlocked),
     });
-
-
 
     // 6. Insert new cards and send study messages
     for (const card of nextCards) {
@@ -96,21 +118,21 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
       });
     }
 
-// Send empty block so you don't accidentally see the teachings
-  const emptyBlock = {
-    to: lineUserId,
-    messages: [
-      { type: 'text', text: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nScroll up for the new words (this is so you don't accidentally see the meanings :))" }
-    ]
-  };
+    // Send empty block so you don't accidentally see the teachings
+    const emptyBlock = {
+      to: lineUserId,
+      messages: [
+        { type: 'text', text: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nScroll up for the new words (this is so you don't accidentally see the meanings :))" }
+      ]
+    };
     await fetch('https://api.line.me/v2/bot/message/push', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${channelToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(emptyBlock),
-  });
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${channelToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emptyBlock),
+    });
 
     return true; // Next batch introduced
   }
