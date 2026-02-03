@@ -4,7 +4,11 @@ CREATE TABLE users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   last_kanji_sent VARCHAR(255),
   last_prompt_type TEXT DEFAULT 'meaning',
-  difficulty VARCHAR(50) DEFAULT 'easy'
+  difficulty VARCHAR(50) DEFAULT 'easy',
+  freq_hours INT DEFAULT 4,
+  last_freq_hours INT DEFAULT 4,
+  freq_paused BOOLEAN DEFAULT FALSE,
+  last_card_sent_at TIMESTAMP
 );
 
 CREATE TABLE cards (
