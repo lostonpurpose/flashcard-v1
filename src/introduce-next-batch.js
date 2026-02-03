@@ -29,7 +29,7 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
   if (mastered) {
     // 5. Get next 5 master_cards not yet assigned to user, filtered by difficulty
     const { rows: nextCards } = await pool.query(
-      `SELECT card_front, card_back FROM master_cards
+      `SELECT card_front, card_back, readings FROM master_cards
        WHERE difficulty = $2
        AND card_front NOT IN (
          SELECT card_front FROM cards WHERE user_id = $1
@@ -99,11 +99,15 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
         );
       }
       
+      let readings;
+      try { readings = JSON.parse(card.readings || '[]'); } catch { readings = []; }
+      const readingsText = readings.length > 0 ? ` | ${readings.join(', ')}` : '';
+
       // Send next five flashcards to learn via LINE
       const meaningText = meanings.join(', ');
       const payload = {
         to: lineUserId,
-        messages: [{ type: 'text', text: `${card.card_front} = ${meaningText}` }]
+        messages: [{ type: 'text', text: `${card.card_front} = ${meaningText}${readingsText}` }]
       };
       await fetch('https://api.line.me/v2/bot/message/push', {
         method: 'POST',

@@ -181,56 +181,75 @@ app.post('/webhook', async (req, res) => {
 
           // Fetch last kanji sent and its meanings from cards table
           const lastKanjiRes = await pool.query(
-            'SELECT c.id, c.card_front, c.card_back FROM cards c JOIN users u ON u.id = c.user_id WHERE u.id = $1 AND c.card_front = u.last_kanji_sent LIMIT 1',
+            'SELECT c.id, c.card_front, c.card_back, c.readings, u.last_prompt_type FROM cards c JOIN users u ON u.id = c.user_id WHERE u.id = $1 AND c.card_front = u.last_kanji_sent LIMIT 1',
             [userId]
           );
           const lastKanji = lastKanjiRes.rows[0]?.card_front;
           const cardBack = lastKanjiRes.rows[0]?.card_back;
+          const cardReadings = lastKanjiRes.rows[0]?.readings;
+          const lastPromptType = lastKanjiRes.rows[0]?.last_prompt_type || 'meaning';
           const cardIdFromQuery = lastKanjiRes.rows[0]?.id;
-          
-          // Parse meanings
-          let allMeanings;
-          try {
-            allMeanings = JSON.parse(cardBack);
-          } catch {
-            allMeanings = [cardBack]; // Old format compatibility
-          }
+
+          let allValues;
+          const raw = lastPromptType === 'reading' ? cardReadings : cardBack;
+          try { allValues = JSON.parse(raw); } catch { allValues = [raw]; }
 
           // Build and send feedback message if right/wrong
           let feedbackText;
           const correct = checkResult !== null;
-          
+
           if (correct) {
-            const matchedMeaning = checkResult.matchedMeaning;
-            
-            // Update the specific meaning's progress
-            await pool.query(
-              `INSERT INTO card_meanings (card_id, meaning, correct_count, last_tested)
-               VALUES ($1, $2, 1, NOW())
-               ON CONFLICT (card_id, meaning)
-               DO UPDATE SET correct_count = card_meanings.correct_count + 1, last_tested = NOW()`,
-              [cardIdFromQuery, matchedMeaning]
-            );
-            
-            feedbackText = `Correct! ${lastKanji} means ${allMeanings.join(', ')}`;
-          } else {
-            // Track which meaning they failed to answer
-            // We'll increment incorrect_count on the least-practiced meaning
-            const meaningStatsRes = await pool.query(
-              `SELECT meaning, correct_count FROM card_meanings WHERE card_id = $1 ORDER BY correct_count ASC LIMIT 1`,
-              [cardIdFromQuery]
-            );
-            
-            if (meaningStatsRes.rows.length > 0) {
-              const leastPracticedMeaning = meaningStatsRes.rows[0].meaning;
+            const matchedValue = checkResult.matchedValue;
+
+            if (lastPromptType === 'reading') {
               await pool.query(
-                `UPDATE card_meanings SET incorrect_count = incorrect_count + 1, last_tested = NOW()
-                 WHERE card_id = $1 AND meaning = $2`,
-                [cardIdFromQuery, leastPracticedMeaning]
+                `INSERT INTO card_readings (card_id, reading, correct_count, last_tested)
+                 VALUES ($1, $2, 1, NOW())
+                 ON CONFLICT (card_id, reading)
+                 DO UPDATE SET correct_count = card_readings.correct_count + 1, last_tested = NOW()`,
+                [cardIdFromQuery, matchedValue]
               );
+              feedbackText = `Correct! ${lastKanji} is read ${allValues.join(', ')}`;
+            } else {
+              await pool.query(
+                `INSERT INTO card_meanings (card_id, meaning, correct_count, last_tested)
+                 VALUES ($1, $2, 1, NOW())
+                 ON CONFLICT (card_id, meaning)
+                 DO UPDATE SET correct_count = card_meanings.correct_count + 1, last_tested = NOW()`,
+                [cardIdFromQuery, matchedValue]
+              );
+              feedbackText = `Correct! ${lastKanji} means ${allValues.join(', ')}`;
             }
-            
-            feedbackText = `Incorrect. ${lastKanji} means ${allMeanings.join(', ')}`;
+          } else {
+            if (lastPromptType === 'reading') {
+              const readingStatsRes = await pool.query(
+                `SELECT reading, correct_count FROM card_readings WHERE card_id = $1 ORDER BY correct_count ASC LIMIT 1`,
+                [cardIdFromQuery]
+              );
+              if (readingStatsRes.rows.length > 0) {
+                const least = readingStatsRes.rows[0].reading;
+                await pool.query(
+                  `UPDATE card_readings SET incorrect_count = incorrect_count + 1, last_tested = NOW()
+                   WHERE card_id = $1 AND reading = $2`,
+                  [cardIdFromQuery, least]
+                );
+              }
+              feedbackText = `Incorrect. ${lastKanji} is read ${allValues.join(', ')}`;
+            } else {
+              const meaningStatsRes = await pool.query(
+                `SELECT meaning, correct_count FROM card_meanings WHERE card_id = $1 ORDER BY correct_count ASC LIMIT 1`,
+                [cardIdFromQuery]
+              );
+              if (meaningStatsRes.rows.length > 0) {
+                const least = meaningStatsRes.rows[0].meaning;
+                await pool.query(
+                  `UPDATE card_meanings SET incorrect_count = incorrect_count + 1, last_tested = NOW()
+                   WHERE card_id = $1 AND meaning = $2`,
+                  [cardIdFromQuery, least]
+                );
+              }
+              feedbackText = `Incorrect. ${lastKanji} means ${allValues.join(', ')}`;
+            }
           }
 
           const payload = {

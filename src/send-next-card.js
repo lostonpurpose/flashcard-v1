@@ -20,38 +20,18 @@ export async function sendNextCard(userId, lineUserId) {
   }
 
   const card = rows[0];
-  
-  // Parse meanings
+
+  // Parse meanings + readings
   let allMeanings;
-  try {
-    allMeanings = JSON.parse(card.card_back);
-  } catch {
-    allMeanings = [card.card_back];
-  }
+  let allReadings;
+  try { allMeanings = JSON.parse(card.card_back); } catch { allMeanings = [card.card_back]; }
+  try { allReadings = JSON.parse(card.readings || '[]'); } catch { allReadings = []; }
 
-  // If only one meaning, just send the kanji
-  if (allMeanings.length === 1) {
-    await pool.query('UPDATE users SET last_kanji_sent = $1 WHERE id = $2', [card.card_front, userId]);
-    
-    const payload = {
-      to: lineUserId,
-      messages: [{ type: 'text', text: card.card_front }]
-    };
-    await fetch('https://api.line.me/v2/bot/message/push', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    return true;
-  }
-
-  // For multiple meanings, check progress on each
+  // Init meanings if missing
   const meaningStatsRes = await pool.query(
     `SELECT meaning, correct_count FROM card_meanings WHERE card_id = $1 ORDER BY correct_count ASC`,
     [card.id]
   );
-
-  // Initialize meanings if they don't exist yet
   if (meaningStatsRes.rows.length === 0) {
     for (const meaning of allMeanings) {
       await pool.query(
@@ -59,47 +39,74 @@ export async function sendNextCard(userId, lineUserId) {
         [card.id, meaning]
       );
     }
-    // Just send the plain kanji for first time
-    await pool.query('UPDATE users SET last_kanji_sent = $1 WHERE id = $2', [card.card_front, userId]);
-    
-    const payload = {
-      to: lineUserId,
-      messages: [{ type: 'text', text: card.card_front }]
-    };
-    await fetch('https://api.line.me/v2/bot/message/push', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    return true;
   }
 
-  // Check if any meaning is lagging by 3 or more
-  const meaningStats = meaningStatsRes.rows;
-  const maxCount = Math.max(...meaningStats.map(m => m.correct_count));
-  const laggingMeanings = meaningStats.filter(m => maxCount - m.correct_count >= 3);
+  const meaningStats = meaningStatsRes.rows.length
+    ? meaningStatsRes.rows
+    : allMeanings.map(m => ({ meaning: m, correct_count: 0 }));
+
+  const meaningsComplete = meaningStats.every(m => m.correct_count >= 1);
 
   let promptText;
-  if (laggingMeanings.length > 0) {
-    // Need to specify which meaning(s) to answer
-    const knownMeanings = meaningStats
-      .filter(m => !laggingMeanings.find(lm => lm.meaning === m.meaning))
-      .map(m => m.meaning);
-    
-    if (knownMeanings.length > 0) {
-      const knownText = knownMeanings.join(', ');
-      promptText = `${card.card_front} means ${knownText}, and ?`;
+  let promptType = 'meaning';
+
+  if (!meaningsComplete || allReadings.length === 0) {
+    const maxCount = Math.max(...meaningStats.map(m => m.correct_count));
+    const laggingMeanings = meaningStats.filter(m => maxCount - m.correct_count >= 3);
+
+    if (laggingMeanings.length > 0) {
+      const knownMeanings = meaningStats
+        .filter(m => !laggingMeanings.find(lm => lm.meaning === m.meaning))
+        .map(m => m.meaning);
+
+      promptText = knownMeanings.length > 0
+        ? `${card.card_front} means ${knownMeanings.join(', ')}, and ?`
+        : card.card_front;
     } else {
-      // All meanings are at 0, just send plain kanji
       promptText = card.card_front;
     }
   } else {
-    // All meanings are balanced, send plain kanji
-    promptText = card.card_front;
+    // Meanings done → quiz readings
+    promptType = 'reading';
+
+    const readingStatsRes = await pool.query(
+      `SELECT reading, correct_count FROM card_readings WHERE card_id = $1 ORDER BY correct_count ASC`,
+      [card.id]
+    );
+    if (readingStatsRes.rows.length === 0) {
+      for (const reading of allReadings) {
+        await pool.query(
+          `INSERT INTO card_readings (card_id, reading) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [card.id, reading]
+        );
+      }
+    }
+
+    const readingStats = readingStatsRes.rows.length
+      ? readingStatsRes.rows
+      : allReadings.map(r => ({ reading: r, correct_count: 0 }));
+
+    const maxCount = Math.max(...readingStats.map(r => r.correct_count));
+    const laggingReadings = readingStats.filter(r => maxCount - r.correct_count >= 3);
+
+    if (laggingReadings.length > 0) {
+      const knownReadings = readingStats
+        .filter(r => !laggingReadings.find(lr => lr.reading === r.reading))
+        .map(r => r.reading);
+
+      promptText = knownReadings.length > 0
+        ? `${card.card_front} is read ${knownReadings.join(', ')}, and ?`
+        : card.card_front;
+    } else {
+      promptText = card.card_front;
+    }
   }
 
-  await pool.query('UPDATE users SET last_kanji_sent = $1 WHERE id = $2', [card.card_front, userId]);
-  
+  await pool.query(
+    'UPDATE users SET last_kanji_sent = $1, last_prompt_type = $2 WHERE id = $3',
+    [card.card_front, promptType, userId]
+  );
+
   const payload = {
     to: lineUserId,
     messages: [{ type: 'text', text: promptText }]
