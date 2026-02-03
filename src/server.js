@@ -274,7 +274,8 @@ app.post('/webhook', async (req, res) => {
 
         // 4. Try to introduce the next batch if ready
         try {
-          await introduceNextBatch(userId, lineUserId, 'easy');
+          const userDifficulty = await pool.query('SELECT difficulty FROM users WHERE id = $1', [userId]);
+          await introduceNextBatch(userId, lineUserId, userDifficulty.rows[0].difficulty);
         } catch (err) {
           console.error("introduceNextBatch failed:", err);
         }

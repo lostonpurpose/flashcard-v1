@@ -30,8 +30,8 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
     const readingsJson = JSON.stringify(readingsArray);
 
     await pool.query(
-      'INSERT INTO master_cards (card_front, card_back, difficulty) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-      [kanjiChar, meaningsJson, difficulty]
+      'INSERT INTO master_cards (card_front, card_back, readings, difficulty) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
+      [kanjiChar, meaningsJson, readingsJson, difficulty]
     );
   }
   await pool.end();

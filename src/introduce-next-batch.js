@@ -24,7 +24,7 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
   const currentBatch = batches[batches.length - 1];
 
   // 4. Check if current batch is mastered
-  const mastered = currentBatch && currentBatch.length === 5 && currentBatch.every(card => card.score > 50);
+  const mastered = currentBatch && currentBatch.length > 0 && currentBatch.every(card => card.score > 50);
 
   if (mastered) {
     // 5. Get next 5 master_cards not yet assigned to user, filtered by difficulty
