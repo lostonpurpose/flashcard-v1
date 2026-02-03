@@ -11,6 +11,7 @@ CREATE TABLE cards (
     user_id INT NOT NULL REFERENCES users(id),
     card_front VARCHAR(255) NOT NULL,
     card_back TEXT NOT NULL,
+    readings TEXT, -- NEW: JSON array of readings
     introduced BOOLEAN NOT NULL DEFAULT FALSE,
     next_review TIMESTAMP,
     correct_count INT NOT NULL DEFAULT 0,
@@ -31,6 +32,7 @@ CREATE TABLE master_cards (
     id SERIAL PRIMARY KEY,
     card_front VARCHAR(255) NOT NULL,
     card_back TEXT NOT NULL,
+    readings TEXT, -- NEW: JSON array of readings
     difficulty VARCHAR(255) NOT NULL,
     UNIQUE (card_front, card_back, difficulty)
 );
@@ -44,4 +46,15 @@ CREATE TABLE card_meanings (
   incorrect_count INTEGER DEFAULT 0,
   last_tested TIMESTAMP,
   UNIQUE(card_id, meaning)
+);
+
+-- New table to track individual reading progress
+CREATE TABLE card_readings (
+  id SERIAL PRIMARY KEY,
+  card_id INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+  reading TEXT NOT NULL,
+  correct_count INTEGER DEFAULT 0,
+  incorrect_count INTEGER DEFAULT 0,
+  last_tested TIMESTAMP,
+  UNIQUE(card_id, reading)
 );

@@ -9,7 +9,8 @@ export async function sendNextCard(userId, lineUserId) {
   const { rows } = await pool.query(
     `SELECT c.* FROM cards c
      WHERE c.user_id = $1 AND c.introduced = TRUE
-     ORDER BY CASE WHEN c.correct_count = 0 THEN 0 ELSE 1 END ASC, c.score ASC
+     ORDER BY CASE WHEN (c.correct_count + c.incorrect_count) = 0 THEN 0 ELSE 1 END ASC,
+              c.score ASC
      LIMIT 1`,
     [userId]
   );

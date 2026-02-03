@@ -25,7 +25,8 @@ for (const user of users) {
   const { rows: cards } = await pool.query(
     `SELECT * FROM cards
      WHERE user_id = $1 AND introduced = TRUE
-     ORDER BY CASE WHEN correct_count = 0 THEN 0 ELSE 1 END ASC, score ASC
+     ORDER BY CASE WHEN (correct_count + incorrect_count) = 0 THEN 0 ELSE 1 END ASC,
+              score ASC
      LIMIT 1`,
     [dbUserId]
   );
