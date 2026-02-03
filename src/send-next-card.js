@@ -8,8 +8,9 @@ export async function sendNextCard(userId, lineUserId) {
   // Get the next card due for review
   const { rows } = await pool.query(
     `SELECT c.* FROM cards c
-     WHERE c.user_id = $1 AND c.introduced = TRUE AND c.next_review <= NOW()
-     ORDER BY c.next_review ASC LIMIT 1`,
+     WHERE c.user_id = $1 AND c.introduced = TRUE
+     ORDER BY CASE WHEN c.correct_count = 0 THEN 0 ELSE 1 END ASC, c.score ASC
+     LIMIT 1`,
     [userId]
   );
 

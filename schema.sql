@@ -10,12 +10,12 @@ CREATE TABLE cards (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id),
     card_front VARCHAR(255) NOT NULL,
-    card_back TEXT NOT NULL,  -- Changed to TEXT to store JSON array
+    card_back TEXT NOT NULL,
     introduced BOOLEAN NOT NULL DEFAULT FALSE,
     next_review TIMESTAMP,
     correct_count INT NOT NULL DEFAULT 0,
     incorrect_count INT NOT NULL DEFAULT 0,
-    frequency INT NOT NULL DEFAULT 8
+    score INT NOT NULL DEFAULT 50
 );
 
 CREATE TABLE reviews (
@@ -30,7 +30,7 @@ CREATE TABLE reviews (
 CREATE TABLE master_cards (
     id SERIAL PRIMARY KEY,
     card_front VARCHAR(255) NOT NULL,
-    card_back TEXT NOT NULL,  -- Changed to TEXT to store JSON array of meanings
+    card_back TEXT NOT NULL,
     difficulty VARCHAR(255) NOT NULL,
     UNIQUE (card_front, card_back, difficulty)
 );
