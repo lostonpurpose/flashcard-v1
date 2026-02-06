@@ -85,6 +85,86 @@ app.post('/webhook', async (req, res) => {
                 console.error("Failed to change difficulty", err);
               }
             }
+          } else if (parts[0].toLowerCase() === 'freq' && parts[1]) {
+            const freqRaw = parts[1].toLowerCase().trim();
+
+            if (freqRaw === 'pause') {
+              await pool.query(
+                'UPDATE users SET last_freq_hours = freq_hours, freq_paused = TRUE WHERE id = $1',
+                [userId]
+              );
+
+              const payload = {
+                to: lineUserId,
+                messages: [{ type: 'text', text: 'Frequency paused.' }]
+              };
+              await fetch('https://api.line.me/v2/bot/message/push', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+              });
+              continue;
+            }
+
+            if (freqRaw === 'start') {
+              await pool.query(
+                'UPDATE users SET freq_paused = FALSE, freq_hours = last_freq_hours WHERE id = $1',
+                [userId]
+              );
+
+              const payload = {
+                to: lineUserId,
+                messages: [{ type: 'text', text: 'Frequency resumed.' }]
+              };
+              await fetch('https://api.line.me/v2/bot/message/push', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+              });
+              continue;
+            }
+
+            let freqHours = null;
+
+            // Allow 1 minute for testing
+            if (freqRaw === '1m' || freqRaw === '1min' || freqRaw === '1 minute') {
+              freqHours = 0; // special case: 1 minute
+            } else {
+              const num = Number(freqRaw);
+              if (Number.isInteger(num) && num >= 1 && num <= 25) {
+                freqHours = num;
+              }
+            }
+
+            if (freqHours === null) {
+              const payload = {
+                to: lineUserId,
+                messages: [{ type: 'text', text: 'Invalid freq. Use 1–25 (hours), or "freq = 1m", or "freq = pause/start".' }]
+              };
+              await fetch('https://api.line.me/v2/bot/message/push', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+              });
+              continue;
+            }
+
+            await pool.query(
+              'UPDATE users SET freq_hours = $1, last_freq_hours = $1, freq_paused = FALSE WHERE id = $2',
+              [freqHours, userId]
+            );
+
+            const freqText = freqHours === 0 ? '1 minute' : `${freqHours} hour(s)`;
+            const payload = {
+              to: lineUserId,
+              messages: [{ type: 'text', text: `Frequency set to ${freqText}.` }]
+            };
+            await fetch('https://api.line.me/v2/bot/message/push', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            continue;
           } else {
             // Custom card creation
             const [cardFront, cardBack] = parts;
@@ -181,56 +261,75 @@ app.post('/webhook', async (req, res) => {
 
           // Fetch last kanji sent and its meanings from cards table
           const lastKanjiRes = await pool.query(
-            'SELECT c.id, c.card_front, c.card_back FROM cards c JOIN users u ON u.id = c.user_id WHERE u.id = $1 AND c.card_front = u.last_kanji_sent LIMIT 1',
+            'SELECT c.id, c.card_front, c.card_back, c.readings, u.last_prompt_type FROM cards c JOIN users u ON u.id = c.user_id WHERE u.id = $1 AND c.card_front = u.last_kanji_sent LIMIT 1',
             [userId]
           );
           const lastKanji = lastKanjiRes.rows[0]?.card_front;
           const cardBack = lastKanjiRes.rows[0]?.card_back;
+          const cardReadings = lastKanjiRes.rows[0]?.readings;
+          const lastPromptType = lastKanjiRes.rows[0]?.last_prompt_type || 'meaning';
           const cardIdFromQuery = lastKanjiRes.rows[0]?.id;
-          
-          // Parse meanings
-          let allMeanings;
-          try {
-            allMeanings = JSON.parse(cardBack);
-          } catch {
-            allMeanings = [cardBack]; // Old format compatibility
-          }
+
+          let allValues;
+          const raw = lastPromptType === 'reading' ? cardReadings : cardBack;
+          try { allValues = JSON.parse(raw); } catch { allValues = [raw]; }
 
           // Build and send feedback message if right/wrong
           let feedbackText;
           const correct = checkResult !== null;
-          
+
           if (correct) {
-            const matchedMeaning = checkResult.matchedMeaning;
-            
-            // Update the specific meaning's progress
-            await pool.query(
-              `INSERT INTO card_meanings (card_id, meaning, correct_count, last_tested)
-               VALUES ($1, $2, 1, NOW())
-               ON CONFLICT (card_id, meaning)
-               DO UPDATE SET correct_count = card_meanings.correct_count + 1, last_tested = NOW()`,
-              [cardIdFromQuery, matchedMeaning]
-            );
-            
-            feedbackText = `Correct! ${lastKanji} means ${allMeanings.join(', ')}`;
-          } else {
-            // Track which meaning they failed to answer
-            // We'll increment incorrect_count on the least-practiced meaning
-            const meaningStatsRes = await pool.query(
-              `SELECT meaning, correct_count FROM card_meanings WHERE card_id = $1 ORDER BY correct_count ASC LIMIT 1`,
-              [cardIdFromQuery]
-            );
-            
-            if (meaningStatsRes.rows.length > 0) {
-              const leastPracticedMeaning = meaningStatsRes.rows[0].meaning;
+            const matchedValue = checkResult.matchedValue;
+
+            if (lastPromptType === 'reading') {
               await pool.query(
-                `UPDATE card_meanings SET incorrect_count = incorrect_count + 1, last_tested = NOW()
-                 WHERE card_id = $1 AND meaning = $2`,
-                [cardIdFromQuery, leastPracticedMeaning]
+                `INSERT INTO card_readings (card_id, reading, correct_count, last_tested)
+                 VALUES ($1, $2, 1, NOW())
+                 ON CONFLICT (card_id, reading)
+                 DO UPDATE SET correct_count = card_readings.correct_count + 1, last_tested = NOW()`,
+                [cardIdFromQuery, matchedValue]
               );
+              feedbackText = `Correct! ${lastKanji} is read ${allValues.join(', ')}`;
+            } else {
+              await pool.query(
+                `INSERT INTO card_meanings (card_id, meaning, correct_count, last_tested)
+                 VALUES ($1, $2, 1, NOW())
+                 ON CONFLICT (card_id, meaning)
+                 DO UPDATE SET correct_count = card_meanings.correct_count + 1, last_tested = NOW()`,
+                [cardIdFromQuery, matchedValue]
+              );
+              feedbackText = `Correct! ${lastKanji} means ${allValues.join(', ')}`;
             }
-            
-            feedbackText = `Incorrect. ${lastKanji} means ${allMeanings.join(', ')}`;
+          } else {
+            if (lastPromptType === 'reading') {
+              const readingStatsRes = await pool.query(
+                `SELECT reading, correct_count FROM card_readings WHERE card_id = $1 ORDER BY correct_count ASC LIMIT 1`,
+                [cardIdFromQuery]
+              );
+              if (readingStatsRes.rows.length > 0) {
+                const least = readingStatsRes.rows[0].reading;
+                await pool.query(
+                  `UPDATE card_readings SET incorrect_count = incorrect_count + 1, last_tested = NOW()
+                   WHERE card_id = $1 AND reading = $2`,
+                  [cardIdFromQuery, least]
+                );
+              }
+              feedbackText = `Incorrect. ${lastKanji} is read ${allValues.join(', ')}`;
+            } else {
+              const meaningStatsRes = await pool.query(
+                `SELECT meaning, correct_count FROM card_meanings WHERE card_id = $1 ORDER BY correct_count ASC LIMIT 1`,
+                [cardIdFromQuery]
+              );
+              if (meaningStatsRes.rows.length > 0) {
+                const least = meaningStatsRes.rows[0].meaning;
+                await pool.query(
+                  `UPDATE card_meanings SET incorrect_count = incorrect_count + 1, last_tested = NOW()
+                   WHERE card_id = $1 AND meaning = $2`,
+                  [cardIdFromQuery, least]
+                );
+              }
+              feedbackText = `Incorrect. ${lastKanji} means ${allValues.join(', ')}`;
+            }
           }
 
           const payload = {
@@ -255,7 +354,8 @@ app.post('/webhook', async (req, res) => {
 
         // 4. Try to introduce the next batch if ready
         try {
-          await introduceNextBatch(userId, lineUserId, 'easy');
+          const userDifficulty = await pool.query('SELECT difficulty FROM users WHERE id = $1', [userId]);
+          await introduceNextBatch(userId, lineUserId, userDifficulty.rows[0].difficulty);
         } catch (err) {
           console.error("introduceNextBatch failed:", err);
         }

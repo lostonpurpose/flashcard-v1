@@ -3,19 +3,27 @@ CREATE TABLE users (
   line_user_id VARCHAR(255) UNIQUE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   last_kanji_sent VARCHAR(255),
-  difficulty VARCHAR(50) DEFAULT 'easy'
+  last_prompt_type TEXT DEFAULT 'meaning',
+  difficulty VARCHAR(50) DEFAULT 'easy',
+  freq_hours INT DEFAULT 4,
+  last_freq_hours INT DEFAULT 4,
+  freq_paused BOOLEAN DEFAULT FALSE,
+  last_card_sent_at TIMESTAMP
 );
 
 CREATE TABLE cards (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id),
     card_front VARCHAR(255) NOT NULL,
-    card_back TEXT NOT NULL,  -- Changed to TEXT to store JSON array
+    card_back TEXT NOT NULL,
+    readings TEXT,
     introduced BOOLEAN NOT NULL DEFAULT FALSE,
     next_review TIMESTAMP,
     correct_count INT NOT NULL DEFAULT 0,
     incorrect_count INT NOT NULL DEFAULT 0,
-    frequency INT NOT NULL DEFAULT 8
+    score INT NOT NULL DEFAULT 50,
+    correct_streak INT NOT NULL DEFAULT 0,
+    incorrect_streak INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE reviews (
@@ -30,7 +38,8 @@ CREATE TABLE reviews (
 CREATE TABLE master_cards (
     id SERIAL PRIMARY KEY,
     card_front VARCHAR(255) NOT NULL,
-    card_back TEXT NOT NULL,  -- Changed to TEXT to store JSON array of meanings
+    card_back TEXT NOT NULL,
+    readings TEXT,
     difficulty VARCHAR(255) NOT NULL,
     UNIQUE (card_front, card_back, difficulty)
 );
@@ -44,4 +53,15 @@ CREATE TABLE card_meanings (
   incorrect_count INTEGER DEFAULT 0,
   last_tested TIMESTAMP,
   UNIQUE(card_id, meaning)
+);
+
+-- New table to track individual reading progress
+CREATE TABLE card_readings (
+  id SERIAL PRIMARY KEY,
+  card_id INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+  reading TEXT NOT NULL,
+  correct_count INTEGER DEFAULT 0,
+  incorrect_count INTEGER DEFAULT 0,
+  last_tested TIMESTAMP,
+  UNIQUE(card_id, reading)
 );

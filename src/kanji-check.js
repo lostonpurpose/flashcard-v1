@@ -26,44 +26,47 @@ export async function checkMessage(userAnswer, userId) {
         return null;
     }
 
-    // Look up the correct meanings (array) from cards
-    let correctMeanings;
+    // Fetch prompt type
+    let lastPromptType = 'meaning';
+    try {
+        const promptRes = await pool.query(
+            'SELECT last_prompt_type FROM users WHERE id = $1',
+            [userId]
+        );
+        lastPromptType = promptRes.rows[0]?.last_prompt_type || 'meaning';
+    } catch {}
+
+    // Look up meanings/readings
+    let correctItems;
     let cardId;
     try {
         const result = await pool.query(
-            'SELECT id, card_back FROM cards WHERE card_front = $1 AND user_id = $2 LIMIT 1',
+            'SELECT id, card_back, readings FROM cards WHERE card_front = $1 AND user_id = $2 LIMIT 1',
             [lastKanji, userId]
         );
         cardId = result.rows[0]?.id;
-        const cardBack = result.rows[0]?.card_back;
-        
-        if (!cardBack) {
-            console.error('[checkMessage] No correct meanings found for kanji:', lastKanji);
-            return null;
-        }
-        
-        // Parse JSON array or handle old format string
+        const raw = lastPromptType === 'reading' ? result.rows[0]?.readings : result.rows[0]?.card_back;
+
+        if (!raw) return null;
+
         try {
-            correctMeanings = JSON.parse(cardBack);
+            correctItems = JSON.parse(raw);
         } catch {
-            correctMeanings = [cardBack]; // Old format compatibility
+            correctItems = [raw];
         }
-        
-        console.log('[checkMessage] correctMeanings from DB:', correctMeanings);
     } catch (err) {
         console.error('[checkMessage] DB error (cards):', err);
         return null;
     }
 
-    // Check if user's answer matches any of the correct meanings
     const userAnswerNormalized = userAnswer.toLowerCase().trim();
-    const matchedMeaning = correctMeanings.find(meaning => 
-        meaning.toLowerCase().trim() === userAnswerNormalized
+    const matchedValue = correctItems.find(item =>
+        item.toLowerCase().trim() === userAnswerNormalized
     );
 
-    if (matchedMeaning) {
-        return { cardId, matchedMeaning, allMeanings: correctMeanings };
+    if (matchedValue) {
+        return { cardId, matchedValue, allValues: correctItems, promptType: lastPromptType };
     }
-    
+
     return null;
 }

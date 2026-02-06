@@ -10,8 +10,7 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Fetch all user IDs and DB IDs from the database
-const { rows: users } = await pool.query('SELECT id, line_user_id FROM users');
+const { rows: users } = await pool.query('SELECT id, line_user_id, freq_hours, freq_paused, last_card_sent_at FROM users');
 if (!users.length) {
   console.log('No users found in the database.');
   process.exit(0);
@@ -21,38 +20,64 @@ let successCount = 0;
 for (const user of users) {
   const userId = user.line_user_id;
   const dbUserId = user.id;
+  const freqHours = user.freq_hours;
+  const freqPaused = user.freq_paused;
+  const lastCardSentAt = user.last_card_sent_at;
 
-  // 1. Get all due cards for the user
-  const { rows: dueCards } = await pool.query(
-    `SELECT * FROM cards
-     WHERE user_id = $1 AND introduced = TRUE AND (next_review IS NULL OR next_review <= NOW())`,
-    [dbUserId]
-  );
-
-  if (!dueCards.length) {
-    console.log(`No due cards for ${userId}`);
+  // Skip if paused
+  if (freqPaused) {
+    console.log(`User ${userId} is paused, skipping`);
     continue;
   }
 
-  // 2. Find the minimum frequency among due cards
-  const minFreq = Math.min(...dueCards.map(card => card.frequency));
+  // Check if enough time has elapsed
+  let freqMinutes;
+  if (freqHours === 0) {
+    freqMinutes = 1; // 1 minute for testing
+  } else {
+    freqMinutes = freqHours * 60;
+  }
 
-  // 3. Filter cards with that minimum frequency
-  const minFreqCards = dueCards.filter(card => card.frequency === minFreq);
+  const now = new Date();
+  const lastSentDate = lastCardSentAt ? new Date(lastCardSentAt) : null;
+  
+  if (lastSentDate) {
+    const elapsedMinutes = (now - lastSentDate) / (1000 * 60);
+    if (elapsedMinutes < freqMinutes) {
+      console.log(`User ${userId}: ${elapsedMinutes.toFixed(1)} min elapsed, need ${freqMinutes} min. Skipping.`);
+      continue;
+    }
+  }
 
-  // 4. Pick one at random
-  const dueCard = minFreqCards[Math.floor(Math.random() * minFreqCards.length)];
+  // Apply per-user score decay
+  await pool.query(
+    'UPDATE cards SET score = score - 1 WHERE user_id = $1 AND score > 50',
+    [dbUserId]
+  );
 
-  // 3. Send quiz message (kanji only)
-  const message = `${dueCard.card_front} = ?`;
+  // Get next card: prioritize unseen (correct_count = 0), then by lowest score
+  const { rows: cards } = await pool.query(
+    `SELECT * FROM cards
+     WHERE user_id = $1 AND introduced = TRUE
+     ORDER BY CASE WHEN (correct_count + incorrect_count) = 0 THEN 0 ELSE 1 END ASC,
+              score ASC
+     LIMIT 1`,
+    [dbUserId]
+  );
 
-  // Update last_kanji_sent to the kanji
+  if (!cards.length) {
+    console.log(`No cards for ${userId}`);
+    continue;
+  }
+
+  const card = cards[0];
+  const message = `${card.card_front} = ?`;
+
   try {
     await pool.query(
-      'UPDATE users SET last_kanji_sent = $1 WHERE id = $2',
-      [dueCard.card_front, dbUserId]
+      'UPDATE users SET last_kanji_sent = $1, last_card_sent_at = NOW() WHERE id = $2',
+      [card.card_front, dbUserId]
     );
-    console.log(`Updated last_kanji_sent for ${userId} to ${dueCard.card_front}`);
   } catch (err) {
     console.error(`Failed to update last_kanji_sent for ${userId}:`, err);
     continue;

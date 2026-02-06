@@ -7,12 +7,9 @@ const channelToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy') {
   // 1. Get all cards for user with their mastery status
   const { rows: userCards } = await pool.query(
-    `SELECT c.id, c.card_front, c.card_back, 
-            COALESCE(MAX(cm.correct_count), 0) as correct_count
+    `SELECT c.id, c.card_front, c.card_back, c.score
      FROM cards c
-     LEFT JOIN card_meanings cm ON c.id = cm.card_id
-     WHERE c.user_id = $1
-     GROUP BY c.id
+     WHERE c.user_id = $1 AND c.introduced = TRUE
      ORDER BY c.id ASC`,
     [userId]
   );
@@ -27,12 +24,12 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
   const currentBatch = batches[batches.length - 1];
 
   // 4. Check if current batch is mastered
-  const mastered = currentBatch && currentBatch.length === 5 && currentBatch.every(card => card.correct_count >= 1);
+  const mastered = currentBatch && currentBatch.length > 0 && currentBatch.every(card => card.score > 50);
 
   if (mastered) {
     // 5. Get next 5 master_cards not yet assigned to user, filtered by difficulty
     const { rows: nextCards } = await pool.query(
-      `SELECT card_front, card_back FROM master_cards
+      `SELECT card_front, card_back, readings FROM master_cards
        WHERE difficulty = $2
        AND card_front NOT IN (
          SELECT card_front FROM cards WHERE user_id = $1
@@ -79,8 +76,8 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
     // 6. Insert new cards and send study messages
     for (const card of nextCards) {
       const insertResult = await pool.query(
-        `INSERT INTO cards (user_id, card_front, card_back, introduced, next_review)
-         VALUES ($1, $2, $3, TRUE, NOW())
+        `INSERT INTO cards (user_id, card_front, card_back, introduced)
+         VALUES ($1, $2, $3, TRUE)
          RETURNING id`,
         [userId, card.card_front, card.card_back]
       );
@@ -102,11 +99,15 @@ export async function introduceNextBatch(userId, lineUserId, difficulty = 'easy'
         );
       }
       
+      let readings;
+      try { readings = JSON.parse(card.readings || '[]'); } catch { readings = []; }
+      const readingsText = readings.length > 0 ? ` | ${readings.join(', ')}` : '';
+
       // Send next five flashcards to learn via LINE
       const meaningText = meanings.join(', ');
       const payload = {
         to: lineUserId,
-        messages: [{ type: 'text', text: `${card.card_front} = ${meaningText}` }]
+        messages: [{ type: 'text', text: `${card.card_front} = ${meaningText}${readingsText}` }]
       };
       await fetch('https://api.line.me/v2/bot/message/push', {
         method: 'POST',
