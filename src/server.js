@@ -85,6 +85,86 @@ app.post('/webhook', async (req, res) => {
                 console.error("Failed to change difficulty", err);
               }
             }
+          } else if (parts[0].toLowerCase() === 'freq' && parts[1]) {
+            const freqRaw = parts[1].toLowerCase().trim();
+
+            if (freqRaw === 'pause') {
+              await pool.query(
+                'UPDATE users SET last_freq_hours = freq_hours, freq_paused = TRUE WHERE id = $1',
+                [userId]
+              );
+
+              const payload = {
+                to: lineUserId,
+                messages: [{ type: 'text', text: 'Frequency paused.' }]
+              };
+              await fetch('https://api.line.me/v2/bot/message/push', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+              });
+              continue;
+            }
+
+            if (freqRaw === 'start') {
+              await pool.query(
+                'UPDATE users SET freq_paused = FALSE, freq_hours = last_freq_hours WHERE id = $1',
+                [userId]
+              );
+
+              const payload = {
+                to: lineUserId,
+                messages: [{ type: 'text', text: 'Frequency resumed.' }]
+              };
+              await fetch('https://api.line.me/v2/bot/message/push', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+              });
+              continue;
+            }
+
+            let freqHours = null;
+
+            // Allow 1 minute for testing
+            if (freqRaw === '1m' || freqRaw === '1min' || freqRaw === '1 minute') {
+              freqHours = 0; // special case: 1 minute
+            } else {
+              const num = Number(freqRaw);
+              if (Number.isInteger(num) && num >= 1 && num <= 25) {
+                freqHours = num;
+              }
+            }
+
+            if (freqHours === null) {
+              const payload = {
+                to: lineUserId,
+                messages: [{ type: 'text', text: 'Invalid freq. Use 1–25 (hours), or "freq = 1m", or "freq = pause/start".' }]
+              };
+              await fetch('https://api.line.me/v2/bot/message/push', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+              });
+              continue;
+            }
+
+            await pool.query(
+              'UPDATE users SET freq_hours = $1, last_freq_hours = $1, freq_paused = FALSE WHERE id = $2',
+              [freqHours, userId]
+            );
+
+            const freqText = freqHours === 0 ? '1 minute' : `${freqHours} hour(s)`;
+            const payload = {
+              to: lineUserId,
+              messages: [{ type: 'text', text: `Frequency set to ${freqText}.` }]
+            };
+            await fetch('https://api.line.me/v2/bot/message/push', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${channelToken}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            continue;
           } else {
             // Custom card creation
             const [cardFront, cardBack] = parts;

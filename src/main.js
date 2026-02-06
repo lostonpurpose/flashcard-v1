@@ -10,7 +10,7 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-const { rows: users } = await pool.query('SELECT id, line_user_id FROM users');
+const { rows: users } = await pool.query('SELECT id, line_user_id, freq_hours, freq_paused, last_card_sent_at FROM users');
 if (!users.length) {
   console.log('No users found in the database.');
   process.exit(0);
@@ -20,6 +20,40 @@ let successCount = 0;
 for (const user of users) {
   const userId = user.line_user_id;
   const dbUserId = user.id;
+  const freqHours = user.freq_hours;
+  const freqPaused = user.freq_paused;
+  const lastCardSentAt = user.last_card_sent_at;
+
+  // Skip if paused
+  if (freqPaused) {
+    console.log(`User ${userId} is paused, skipping`);
+    continue;
+  }
+
+  // Check if enough time has elapsed
+  let freqMinutes;
+  if (freqHours === 0) {
+    freqMinutes = 1; // 1 minute for testing
+  } else {
+    freqMinutes = freqHours * 60;
+  }
+
+  const now = new Date();
+  const lastSentDate = lastCardSentAt ? new Date(lastCardSentAt) : null;
+  
+  if (lastSentDate) {
+    const elapsedMinutes = (now - lastSentDate) / (1000 * 60);
+    if (elapsedMinutes < freqMinutes) {
+      console.log(`User ${userId}: ${elapsedMinutes.toFixed(1)} min elapsed, need ${freqMinutes} min. Skipping.`);
+      continue;
+    }
+  }
+
+  // Apply per-user score decay
+  await pool.query(
+    'UPDATE cards SET score = score - 1 WHERE user_id = $1 AND score > 50',
+    [dbUserId]
+  );
 
   // Get next card: prioritize unseen (correct_count = 0), then by lowest score
   const { rows: cards } = await pool.query(
@@ -41,7 +75,7 @@ for (const user of users) {
 
   try {
     await pool.query(
-      'UPDATE users SET last_kanji_sent = $1 WHERE id = $2',
+      'UPDATE users SET last_kanji_sent = $1, last_card_sent_at = NOW() WHERE id = $2',
       [card.card_front, dbUserId]
     );
   } catch (err) {
